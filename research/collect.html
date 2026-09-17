@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ZeroBus — donate a booking sentence (T04 dataset collection)</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+  textarea { width: 100%; height: 4rem; }
+  .row { margin: 1rem 0; }
+  button { padding: .5rem 1.2rem; font-size: 1rem; }
+  #out { background: #f4f4f4; padding: .5rem; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Donate a booking sentence</h1>
+<p>Type how <em>you</em> would ask for a bus ticket, pick who it is for, and
+press Add. When you are done, press Download and send the file to the team.</p>
+<div class="row">
+  <textarea id="text" placeholder='e.g. Book an AC sleeper for my dad tomorrow'></textarea>
+</div>
+<div class="row">
+  <label><input type="radio" name="label" value="self" checked> For me (self)</label><br>
+  <label><input type="radio" name="label" value="other"> For someone else (other)</label><br>
+  <label><input type="radio" name="label" value="ambiguous"> Can't tell / multiple people (ambiguous)</label>
+</div>
+<div class="row">
+  <button onclick="add()">Add</button>
+  <button onclick="download()">Download JSON (<span id="n">0</span>)</button>
+</div>
+<pre id="out">[]</pre>
+<script>
+const rows = [];
+function add() {
+  const text = document.getElementById('text').value.trim();
+  if (!text) return;
+  const label = document.querySelector('input[name=label]:checked').value;
+  rows.push({text, label});
+  document.getElementById('text').value = '';
+  document.getElementById('n').textContent = rows.length;
+  document.getElementById('out').textContent = JSON.stringify(rows.slice(-5), null, 2);
+}
+function download() {
+  const blob = new Blob([JSON.stringify(rows, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'collected-utterances.json';
+  a.click();
+}
+</script>
+</body>
+</html>

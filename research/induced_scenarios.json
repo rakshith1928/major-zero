@@ -1,0 +1,40 @@
+{
+  "protocol": "Within-subject, counterbalanced. Each participant does all tasks on BOTH systems (ZeroBus and RedBus, order swapped per participant). RedBus tasks stop at the payment screen — no real money. Familiarity survey first (covariate).",
+  "tasks": [
+    {
+      "id": "T-A",
+      "title": "Simple self booking",
+      "instruction": "Book an AC sleeper from Bangalore to Chennai for tomorrow, for yourself.",
+      "planted_mistake": null,
+      "measures": ["booking_seconds", "manual_fields", "success"]
+    },
+    {
+      "id": "T-B",
+      "title": "Deadline pressure",
+      "instruction": "You have an exam in Chennai at 8 AM. Book an AC sleeper from Bangalore that gets you there safely.",
+      "planted_mistake": "A 23:30 departure arriving 06:45 looks fine but leaves a thin buffer; the system should warn.",
+      "measures": ["booking_seconds", "manual_fields", "success", "warning_accepted"]
+    },
+    {
+      "id": "T-C",
+      "title": "Unusual boarding point",
+      "instruction": "You always board at Majestic. Today the form preselects Electronic City — book without checking.",
+      "planted_mistake": "Preselected remote boarding point; the system should ask for confirmation.",
+      "measures": ["warning_accepted", "success"]
+    },
+    {
+      "id": "T-D",
+      "title": "Booking for mother",
+      "instruction": "Book an AC semi-sleeper from Bangalore to Chennai for your mother (age 55).",
+      "planted_mistake": null,
+      "measures": ["booking_seconds", "manual_fields", "success", "consent_given"]
+    },
+    {
+      "id": "T-E",
+      "title": "Date trap",
+      "instruction": "Book the overnight bus leaving Friday night. Confirm the arrival date carefully.",
+      "planted_mistake": "Overnight arrival falls on Saturday; participants often pick Friday as arrival.",
+      "measures": ["warning_accepted", "success"]
+    }
+  ]
+}
