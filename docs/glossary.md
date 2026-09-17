@@ -1,0 +1,29 @@
+# Glossary — ZeroBus
+
+- **Zero-form booking** — completing a booking without manually filling passenger fields, because the system already knows them from the authenticated user's profile (or a previously saved, consented passenger).
+- **Passenger vault** — the Fernet-encrypted store of a user's own details (name, age, gender, phone) entered once at onboarding, plus any consented third-party passengers.
+- **Passkey / WebAuthn** — the W3C standard for passwordless login; on this project the platform authenticator is Windows Hello (fingerprint), with an argon2-hashed password fallback.
+- **Self / Other / Ambiguous** — the three classes of the passenger-reference task: utterance refers to the logged-in user ("book for me"), to someone else ("for my mother"), or is undeterminable ("book two tickets").
+- **Passenger-ref classifier** — the team's own trained model (all-MiniLM-L6-v2 embeddings + logistic-regression head) that assigns Self/Other/Ambiguous; the core AIML artifact of the project.
+- **Head-to-head eval** — comparing the passenger-ref classifier against Gemini zero-shot prompting on the identical held-out test set; reported as confusion matrix + precision/recall/F1.
+- **Slot extraction** — the Gemini structured-JSON step mapping a chat message to {origin, destination, date, bus_type, budget, deadline_time, boarding_point, passenger_ref}.
+- **Booking state machine** — persisted per-conversation booking progress (searching → results → passenger set → warnings → payment → ticket) so partial bookings survive.
+- **Mistake Predictor** — the pre-payment module that runs four detectors and warns the user with a safer alternative; every warning is logged.
+- **Deadline buffer** — margin between a user-stated arrival deadline and the bus's scheduled arrival; the buffer detector fires when it is too thin (e.g., arrival 7:50 for an 8:00 exam).
+- **Boarding-point deviation** — a chosen boarding point that differs from the user's historical pattern on that route (e.g., usually Majestic, now a far suburb).
+- **Passenger-detail mismatch** — inconsistency between the identified passenger and the details/seat rules (age or gender conflicts with berth allocation, or third-party details on a self ticket).
+- **Date/time error** — past dates, departure-vs-arrival ambiguity in phrases like "tomorrow 8 AM", or overnight buses whose arrival falls on the next calendar day.
+- **Warnings log** — table recording each detector firing and the user's outcome: fired / accepted (changed) / overridden (kept).
+- **QR ticket** — the post-payment digital ticket containing a signed payload; generated per booking.
+- **Conductor verification** — the page that scans the QR via webcam (html5-qrcode) or accepts manual code entry, rejecting duplicates and invalid signatures.
+- **Razorpay test mode** — Razorpay's sandbox keys: the full checkout UX with no real money movement.
+- **Demand prediction** — Random Forest forecast of bookings per route × date × hour, trained on seeded synthetic history; used for peak-hour analysis and the fare indicator.
+- **Crowd level** — v1's proxy for crowding: booked seats / capacity per bus.
+- **Simulated GPS** — v1's disclosed stand-in for live tracking: a worker advances buses along route polylines; displayed on a Leaflet + OpenStreetMap map with ETA.
+- **Admin dashboard** — React (Recharts) view of bookings, revenue, occupancy, demand forecasts, warning analytics, and the live map.
+- **RedBus cutoff protocol** — the study baseline: participants perform tasks on the real RedBus site but stop at the payment screen, so metrics are comparable without spending money.
+- **Within-subject / counterbalanced** — every participant uses both systems, with the order of systems half-swapped to cancel learning effects.
+- **Familiarity covariate** — the recorded prior RedBus experience of each participant, used to adjust the comparison.
+- **SUS** — System Usability Scale, the 10-item questionnaire used after each system in the study.
+- **Tracer bullet** — a thin end-to-end slice of a feature (the shape of every ticket in `tickets/`).
+- **Minimal-download model policy** — only all-MiniLM-L6-v2 (~90 MB) is ever downloaded, deferred until the classifier step, cached on D: (`models\huggingface`), then loaded offline.
