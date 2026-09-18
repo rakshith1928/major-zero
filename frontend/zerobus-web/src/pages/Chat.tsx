@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { PageHeader, SignInPrompt } from "../components/UI";
 import { api, type BusCard, type BookingCreated, type SavedPassenger, type Warning } from "../api";
 import { useAuth } from "../auth";
 
@@ -72,7 +72,7 @@ interface CaptureForm { name: string; age: string; gender: string; phone: string
 
 function BusCardView({ bus, onSelect }: { bus: BusCard; onSelect: (bus: BusCard) => void }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="zb-bus-card">
       <div className="flex items-center justify-between">
         <span className="font-semibold text-slate-900">{bus.operator}</span>
         <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
@@ -96,7 +96,7 @@ function BusCardView({ bus, onSelect }: { bus: BusCard; onSelect: (bus: BusCard)
       </div>
       <button
         onClick={() => onSelect(bus)}
-        className="mt-3 w-full rounded-lg bg-indigo-900 px-4 py-2 font-semibold text-white hover:bg-indigo-800"
+        className="zb-action mt-3 w-full rounded-lg bg-indigo-900 px-4 py-2 font-semibold text-white"
       >
         Select this bus
       </button>
@@ -218,7 +218,6 @@ function loadStored() {
 
 export default function Chat() {
   const { user } = useAuth();
-  const nav = useNavigate();
   const [stored] = useState(loadStored);
   const [sessionId] = useState(() => stored?.sessionId || `web-${Date.now()}`);
   const [messages, setMessages] = useState<ChatMessage[]>(stored?.messages || [
@@ -237,7 +236,12 @@ export default function Chat() {
   const [chosenProfile, setChosenProfile] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, buses, warnings]);
+  // Respect prefers-reduced-motion: CSS alone can't override the explicit
+  // scrollIntoView option, so pick the behavior here.
+  useEffect(() => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    bottomRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  }, [messages, buses, warnings]);
 
   // T03: pre-payment state survives a page reload.
   useEffect(() => {
@@ -248,10 +252,10 @@ export default function Chat() {
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-md px-4 py-10 text-center">
-        <p className="text-slate-700">Please log in to book.</p>
-        <button onClick={() => nav("/login")} className="mt-3 rounded-lg bg-indigo-900 px-4 py-2 font-semibold text-white">Log in</button>
-      </div>
+      <SignInPrompt
+        title="Log in to start booking"
+        description="Your trip is planned in a simple conversation. Sign in so your passenger details and tickets are ready when you are."
+      />
     );
   }
 
@@ -381,8 +385,15 @@ export default function Chat() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
-      <div className="space-y-3" aria-live="polite">
+    <div className="zb-chat">
+      <PageHeader
+        icon="chat"
+        eyebrow="Plan your trip"
+        title="Book by chatting"
+        description="Tell me where you’re going. I’ll pull up buses, flag anything risky, and keep your details out of repetitive forms."
+        badge="Simulated inventory"
+      />
+      <div className="zb-chat-thread space-y-3" aria-live="polite">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${m.role === "user" ? "bg-indigo-900 text-white" : "border border-slate-200 bg-white text-slate-800"}`}>
@@ -478,18 +489,18 @@ export default function Chat() {
         )}
         <div ref={bottomRef} />
       </div>
-      <div className="sticky bottom-0 mt-4 flex gap-2 bg-slate-50 py-3">
-        <button onClick={voiceInput} aria-label="Voice input" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-700">Mic</button>
+      <div className="zb-composer">
+        <button onClick={voiceInput} aria-label="Voice input" className="zb-action rounded-xl border border-slate-300 bg-white px-3 text-slate-700">Mic</button>
         <label htmlFor="zb-chat-input" className="sr-only">Type your message</label>
         <input
           id="zb-chat-input"
-          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"
+          className="zb-control min-w-0 flex-1"
           placeholder="Type your trip..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
         />
-        <button onClick={() => send()} disabled={busy} className="rounded-lg bg-indigo-900 px-4 py-2 font-semibold text-white disabled:opacity-50">
+        <button onClick={() => send()} disabled={busy} className="zb-action rounded-xl bg-indigo-900 px-4 font-semibold text-white disabled:opacity-50">
           {busy ? "..." : "Send"}
         </button>
       </div>

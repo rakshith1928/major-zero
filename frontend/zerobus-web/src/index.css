@@ -3,21 +3,114 @@
 @tailwind utilities;
 
 @layer base {
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  select:focus-visible {
-    outline: 2px solid #f59e0b;
-    outline-offset: 2px;
-  }
+  body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  ::selection { background: #e0e7ff; color: #1e1b4b; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #4f46e5; outline-offset: 3px; }
+  :focus-visible { scroll-margin-top: 150px; }
+  button:disabled { cursor: not-allowed; }
 }
 
+@layer components {
+  .zb-app { @apply flex min-h-[100dvh] flex-col bg-slate-50 text-slate-900; }
+  .zb-icon { @apply h-[18px] w-[18px] shrink-0; }
+  .zb-brand { @apply inline-flex shrink-0 items-center gap-2.5 text-2xl font-bold tracking-tight text-indigo-950; }
+  .zb-brand img { transition: transform 200ms ease; }
+  .zb-brand-dot { @apply text-amber-500; }
+  .zb-nav { @apply sticky top-0 z-40 border-b border-slate-200 bg-white; }
+  .zb-nav-inner { @apply mx-auto flex min-h-[76px] max-w-6xl items-center gap-8 px-6; }
+  .zb-nav-links { @apply flex min-w-0 items-center gap-1; }
+  .zb-nav-link { @apply relative inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-600; transition: color 160ms, background-color 160ms; }
+  .zb-nav-link.is-active { @apply bg-indigo-50 font-semibold text-indigo-900; }
+  .zb-nav-link.is-active::after { content: ""; position: absolute; bottom: 4px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: #6366f1; }
+  .zb-nav-account { @apply ml-auto flex shrink-0 items-center gap-1; }
+  .zb-logout { @apply min-h-11 rounded-lg px-2 text-xs font-medium text-slate-500; }
+  .zb-button { @apply inline-flex min-h-11 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-semibold; transition: background-color 160ms, box-shadow 160ms, transform 160ms; }
+  .zb-button-primary { @apply bg-indigo-900 text-white; box-shadow: 0 3px 6px #1e1b4b0d; }
+  .zb-button-amber { @apply bg-amber-400 text-indigo-950; }
+  .zb-button-hero { @apply border border-indigo-400 text-white; }
+  .zb-skip { @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-white px-4 py-3 font-semibold text-indigo-900 shadow-lg focus:translate-y-0; }
+  .zb-footer { @apply mx-auto mt-8 w-full max-w-6xl border-t border-slate-200 px-6 py-7 text-xs leading-relaxed text-slate-500; }
+  .zb-footer > div { @apply mb-3 flex flex-wrap items-center gap-x-5 gap-y-1; }
+  .zb-footer > div > span:first-child { @apply text-lg tracking-tight; }
+  .zb-landing { @apply mx-auto max-w-6xl px-6 pb-4 pt-8; }
+  .zb-hero { @apply relative grid items-center gap-10 overflow-hidden rounded-3xl bg-indigo-950 px-10 py-14 text-white lg:grid-cols-[1.12fr_1fr]; }
+  .zb-hero::before { content: ""; position: absolute; width: 430px; height: 430px; right: -140px; top: -210px; border: 1px solid #ffffff12; border-radius: 50%; pointer-events: none; }
+  .zb-hero-copy { @apply relative; }
+  .zb-eyebrow { @apply flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-700; }
+  .zb-hero h1 { @apply mt-5 text-[44px] font-bold leading-[1.1] tracking-[-0.045em] xl:text-[54px]; }
+  .zb-hero h1 > span { @apply text-amber-300; }
+  .zb-hero-description { @apply mt-5 max-w-md text-[15px] leading-7 text-indigo-200; }
+  .zb-hero-note { @apply mt-7 flex flex-wrap items-center gap-2 text-[11px] text-indigo-200; }
+  .zb-hero-note .zb-icon { @apply h-3.5 w-3.5; }
+  .zb-conversation { @apply relative overflow-hidden rounded-2xl border border-white/20 bg-slate-50 text-slate-800; box-shadow: 0 20px 48px #00000026; }
+  .zb-conversation-top { @apply flex items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-4 text-sm; }
+  .zb-conversation-body { @apply flex flex-col gap-3 p-5 text-[13px] leading-relaxed; }
+  .zb-example-user { @apply ml-10 rounded-2xl rounded-br-sm bg-indigo-900 px-4 py-3 text-white; }
+  .zb-example-short { @apply self-end; }
+  .zb-example-assistant { @apply mr-5 rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 text-slate-600; }
+  .zb-route-strip { @apply flex items-center justify-between gap-4 border-t border-slate-200 bg-white px-5 py-4 text-sm font-semibold text-indigo-950; }
+  .zb-route-line { @apply flex flex-1 items-center justify-center border-t border-dashed border-indigo-200; }
+  .zb-route-line .zb-icon { @apply -mt-px rounded-full bg-white text-indigo-400; }
+  .zb-features { @apply mt-12; }
+  .zb-feature-card { @apply rounded-2xl border border-slate-200 bg-white p-6; }
+  .zb-icon-tile { @apply inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-100 bg-indigo-50 text-indigo-800; }
+  .zb-icon-tile .zb-icon { @apply h-6 w-6; }
+  .zb-disclosure { @apply mt-7 flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-100/70 px-5 py-4 text-xs leading-relaxed text-slate-600; }
+  .zb-badge { @apply inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800; }
+  .zb-page { @apply mx-auto max-w-5xl px-6 py-10; }
+  .zb-page-narrow { @apply mx-auto max-w-lg px-6 py-10; }
+  .zb-page-header { @apply mb-7; }
+  .zb-page-header h1 { @apply text-3xl font-bold tracking-tight text-indigo-950; }
+  .zb-panel { @apply rounded-2xl border border-slate-200 bg-white p-6; box-shadow: 0 2px 5px #0f172a03; }
+  .zb-auth { @apply mx-auto my-10 w-[calc(100%-32px)] max-w-lg rounded-3xl border border-slate-200 bg-white p-8; box-shadow: 0 12px 40px #1e1b4b06; }
+  .zb-gate { @apply mx-auto my-12 w-[calc(100%-32px)] max-w-xl rounded-3xl border border-slate-200 bg-white px-6 py-12 text-center; }
+  .zb-control { @apply min-h-11 min-w-0 rounded-xl border border-slate-500 bg-white px-3 py-2 text-sm; transition: border-color 160ms, box-shadow 160ms; }
+  .zb-control:focus { @apply border-indigo-600 ring-2 ring-indigo-100; }
+  .zb-action { @apply min-h-11; transition: background-color 160ms, box-shadow 160ms, border-color 160ms; }
+  .zb-map { @apply isolate overflow-hidden rounded-2xl border border-slate-200; }
+  .zb-chat { @apply mx-auto max-w-3xl px-5 py-8; }
+  .zb-chat-thread { @apply rounded-2xl border border-slate-200 bg-slate-100/60 p-4 sm:p-6; }
+  .zb-bus-card { @apply rounded-2xl border border-slate-200 bg-white p-5; transition: border-color 180ms, box-shadow 180ms; }
+  .zb-composer { @apply sticky bottom-0 z-10 mt-4 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm; }
+}
+
+@media (hover: hover) {
+  .zb-brand:hover img { transform: rotate(-5deg); }
+  .zb-nav-link:hover { background: #f1f5f9; color: #312e81; }
+  .zb-nav-link.is-active:hover { background: #e0e7ff; }
+  .zb-logout:hover { background: #f8fafc; color: #312e81; }
+  .zb-button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px #1e1b4b18; }
+  .zb-button-primary:hover { background: #3730a3; }
+  .zb-button-amber:hover { background: #fcd34d; }
+  .zb-button-hero:hover { background: #312e81; }
+  .zb-action:hover:not(:disabled) { box-shadow: 0 3px 10px #1e1b4b14; }
+  .zb-bus-card:hover { border-color: #a5b4fc; box-shadow: 0 4px 16px #1e1b4b08; }
+}
+.zb-button:active { transform: translateY(0); }
+.zb-button:disabled { transform: none; box-shadow: none; opacity: .5; }
+@media (max-width: 900px) {
+  .zb-nav-inner { gap: 12px; padding-inline: 16px; }
+  .zb-nav-link { padding-inline: 10px; }
+}
+@media (max-width: 767px) {
+  .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
+  .zb-brand { font-size: 22px; }
+  .zb-brand img { width: 32px; height: 32px; }
+  .zb-nav-account { margin-bottom: 8px; }
+  .zb-nav-account .zb-icon { display: none; }
+  .zb-nav-links { order: 3; width: 100%; overflow-x: auto; padding: 4px 0 8px; gap: 4px; }
+  .zb-nav-link { padding-inline: 12px; font-size: 13px; }
+  .zb-nav-links .zb-nav-link { flex: 1 0 auto; }
+  .zb-nav-links .zb-icon { width: 16px; height: 16px; }
+  .zb-landing { padding: 20px 16px; }
+  .zb-hero { padding: 32px 24px; gap: 32px; }
+  .zb-hero h1 { font-size: 40px; }
+  .zb-conversation-top, .zb-conversation-body, .zb-route-strip { padding: 16px; }
+  .zb-disclosure { flex-direction: column; gap: 10px; }
+  .zb-page, .zb-page-narrow { padding: 28px 16px; }
+  .zb-auth { padding: 24px; margin-block: 28px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .zb-button, .zb-brand img { transform: none !important; }
 }

@@ -6,14 +6,14 @@ import { useAuth } from "../auth";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="text-sm font-medium text-slate-700">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
   );
 }
 
-const inputCls = "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500";
+const inputCls = "zb-control min-w-0 w-full";
 
 export function Register() {
   const nav = useNavigate();
@@ -48,9 +48,13 @@ export function Register() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
-      <p className="mt-1 text-sm text-slate-600">Your details are entered once, stored encrypted, and never typed again.</p>
+    <div className="zb-auth">
+      <div className="flex items-center gap-2">
+        <img src="/favicon.svg" alt="ZeroBus logo" width={26} height={26} />
+        <span className="zb-eyebrow">ZeroBus · Secure access</span>
+      </div>
+      <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">Create your account</h1>
+      <p className="mt-1 text-sm leading-relaxed text-slate-600">Your details are entered once, stored encrypted, and never typed again.</p>
       <form onSubmit={submit} className="mt-6 space-y-4">
         <Field label="Email"><input className={inputCls} type="email" required value={form.email} onChange={set("email")} /></Field>
         <Field label="Password (fallback for devices without fingerprint)"><input className={inputCls} type="password" required minLength={8} value={form.password} onChange={set("password")} /></Field>
@@ -67,8 +71,8 @@ export function Register() {
         </div>
         <Field label="Phone"><input className={inputCls} required minLength={10} maxLength={15} value={form.phone} onChange={set("phone")} /></Field>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button className="w-full rounded-lg bg-indigo-900 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800">Create account</button>
-        <button type="button" onClick={registerPasskey} className="w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-indigo-950 hover:bg-amber-300">
+        <button className="zb-action w-full rounded-lg bg-indigo-900 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800">Create account</button>
+        <button type="button" onClick={registerPasskey} className="zb-action w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-indigo-950 hover:bg-amber-300">
           Create account with fingerprint
         </button>
       </form>
@@ -111,9 +115,14 @@ export function Login() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      <h1 className="text-2xl font-bold text-slate-900">Log in</h1>
-      <button onClick={passkeyLogin} className="mt-4 w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-indigo-950 hover:bg-amber-300">
+    <div className="zb-auth">
+      <div className="flex items-center gap-2">
+        <img src="/favicon.svg" alt="ZeroBus logo" width={26} height={26} />
+        <span className="zb-eyebrow">ZeroBus · Welcome back</span>
+      </div>
+      <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">Log in</h1>
+      <p className="mt-1 text-sm leading-relaxed text-slate-600">One tap with your fingerprint, or your password below.</p>
+      <button onClick={passkeyLogin} className="zb-action mt-4 w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-indigo-950 hover:bg-amber-300">
         Log in with fingerprint
       </button>
       <div className="my-4 border-t border-slate-200 pt-4">
@@ -122,7 +131,7 @@ export function Login() {
           <Field label="Email"><input className={inputCls} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
           <Field label="Password"><input className={inputCls} type="password" required value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <button className="w-full rounded-lg bg-indigo-900 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800">Log in</button>
+          <button className="zb-action w-full rounded-lg bg-indigo-900 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800">Log in</button>
         </form>
       </div>
       <p className="text-sm text-slate-600">New here? <Link className="text-indigo-700 underline" to="/register">Create an account</Link></p>

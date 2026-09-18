@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type SavedPassenger } from "../api";
 import { useAuth } from "../auth";
+import { Icon, PageHeader, SignInPrompt } from "../components/UI";
 
 interface Notice { id: number; title: string; body: string }
 
@@ -14,22 +15,29 @@ export default function Profile() {
     api.notifications().then((b) => setNotifications(b.notifications)).catch(() => {});
   }, []);
 
-  if (!user) return <p className="mx-auto max-w-md px-4 py-10 text-slate-700">Please log in.</p>;
+  if (!user) return <SignInPrompt icon="user" title="Make yourself at home" description="Log in to manage saved passengers and see your account notifications." />;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="text-2xl font-bold text-slate-900">Profile</h1>
-      <p className="mt-1 text-sm text-slate-600">{user.email} · details stored encrypted, decrypted only for your bookings.</p>
+    <div className="zb-page">
+      <PageHeader icon="user" eyebrow="Your account" title="Profile" description="Your passenger details and notifications, in one place." />
+      <div className="zb-panel mt-6 flex items-start gap-3">
+        <span className="zb-icon-tile shrink-0"><Icon name="lock" /></span>
+        <div className="min-w-0">
+          <p className="break-words font-semibold text-slate-900">{user.email}</p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-600">Details stored encrypted, decrypted only for your bookings.</p>
+        </div>
+      </div>
 
-      <h2 className="mt-6 font-semibold text-slate-900">Saved passengers</h2>
-      {passengers.length === 0 && <p className="mt-1 text-sm text-slate-500">None yet. Book for someone and choose "remember".</p>}
+      <section className="zb-panel mt-5">
+      <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="user" />Saved passengers</h2>
+      <p className="mt-2 text-sm text-slate-500">Book for someone and choose "remember" to save their details here.</p>
       <ul className="mt-2 space-y-2">
         {passengers.map((p) => (
-          <li key={p.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3">
-            <span className="text-sm text-slate-800">{p.label}: {p.name}, {p.age} ({p.phone})</span>
+          <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <span className="min-w-0 break-words text-sm text-slate-800">{p.label}: {p.name}, {p.age} ({p.phone})</span>
             <button
               onClick={async () => { await api.deletePassenger(p.id); setPassengers(passengers.filter((x) => x.id !== p.id)); }}
-              className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+              className="zb-action shrink-0 rounded-lg border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
             >
               Delete
             </button>
@@ -37,15 +45,19 @@ export default function Profile() {
         ))}
       </ul>
 
-      <h2 className="mt-6 font-semibold text-slate-900">Notifications</h2>
+      </section>
+      <section className="zb-panel mt-5">
+      <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="chat" />Notifications</h2>
+      <p className="mt-2 text-sm text-slate-500">Updates connected to your account and journeys.</p>
       <ul className="mt-2 space-y-2">
         {notifications.map((n) => (
-          <li key={n.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800">
+          <li key={n.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800">
             <strong>{n.title}</strong>
-            <p className="text-slate-600">{n.body}</p>
+            <p className="mt-1 break-words leading-relaxed text-slate-600">{n.body}</p>
           </li>
         ))}
       </ul>
+      </section>
     </div>
   );
 }

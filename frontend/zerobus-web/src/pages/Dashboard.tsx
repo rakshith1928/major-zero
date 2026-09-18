@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { api } from "../api";
 import { useAuth } from "../auth";
+import { Icon, PageHeader, SignInPrompt } from "../components/UI";
 
 import marker2x from "leaflet/dist/images/marker-icon-2x.png";
 import marker from "leaflet/dist/images/marker-icon.png";
@@ -36,7 +37,7 @@ export default function Dashboard() {
     api.positions().then((p) => setLiveBuses(p.buses)).catch(() => {});
   }, []);
 
-  if (!user) return <p className="mx-auto max-w-md px-4 py-10 text-slate-700">Please log in.</p>;
+  if (!user) return <SignInPrompt icon="chart" title="Your operations overview" description="Log in with an administrator account to view bookings, warning outcomes, and route demand." />;
   if (!user.is_admin) return <Navigate to="/login" replace />;
   if (error) return <p className="mx-auto max-w-md px-4 py-10 text-red-600">Admin only: {error}</p>;
   if (!data) return <p className="mx-auto max-w-md px-4 py-10 text-slate-600">Loading dashboard...</p>;
@@ -52,18 +53,18 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
-      <h1 className="text-2xl font-bold text-slate-900">Admin dashboard</h1>
-      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="zb-page">
+      <PageHeader icon="chart" eyebrow="Operations workspace" title="Admin dashboard" description="An overview of bookings, passenger safety signals, and demand across your routes." />
+      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {Object.entries(data.totals).map(([k, v]) => (
-          <div key={k} className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">{k.replaceAll("_", " ")}</p>
-            <p className="text-2xl font-bold tabular-nums text-slate-900">{v}</p>
+          <div key={k} className="zb-panel min-w-0">
+            <p className="break-words text-xs uppercase tracking-wide text-slate-500">{k.replaceAll("_", " ")}</p>
+            <p className="mt-3 text-3xl font-bold tabular-nums text-indigo-950">{v}</p>
           </div>
         ))}
       </div>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="zb-panel min-w-0">
           <h2 className="font-semibold text-slate-900">Warning outcomes</h2>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
@@ -74,7 +75,7 @@ export default function Dashboard() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="zb-panel min-w-0">
           <h2 className="font-semibold text-slate-900">Active bookings by route</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.demand || []}>
@@ -87,7 +88,7 @@ export default function Dashboard() {
         </div>
       </div>
       {curve.length > 0 && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="zb-panel mt-4 min-w-0">
           <h2 className="font-semibold text-slate-900">Demand forecast — Bangalore to Chennai (today)</h2>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={curve}>
@@ -100,8 +101,14 @@ export default function Dashboard() {
           <p className="mt-1 text-xs text-slate-500">Peak departures: {curve.filter((c) => c.is_peak).map((c) => c.departure).join(", ") || "none"}</p>
         </div>
       )}
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
-        <MapContainer center={[13.5, 78.8]} zoom={6} style={{ height: 300, width: "100%" }}>
+      <section className="zb-panel mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="pin" />Fleet map</h2>
+          <span className="zb-badge">SIMULATION</span>
+        </div>
+        <p className="mt-2 text-sm text-slate-600">Prototype positions are simulated, not live GPS readings.</p>
+      <div className="zb-map mt-4">
+        <MapContainer center={[13.5, 78.8]} zoom={6} className="h-[260px] w-full sm:h-[300px]">
           <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
           {liveBuses.map((b) => (
             <Marker key={b.bus_id} position={[b.lat, b.lon]}>
@@ -110,19 +117,22 @@ export default function Dashboard() {
           ))}
         </MapContainer>
       </div>
+      </section>
       {warningRows.length > 0 && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="zb-panel mt-4 min-w-0">
           <h2 className="font-semibold text-slate-900">Warnings by detector</h2>
-          <table className="mt-2 w-full text-sm">
+          <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
             <thead><tr className="text-left text-slate-500"><th>Detector</th><th>Fired</th><th>Accepted</th><th>Overridden</th></tr></thead>
             <tbody>
               {warningRows.map((r) => (
                 <tr key={r.detector} className="border-t border-slate-100 tabular-nums">
-                  <td className="py-1">{r.detector}</td><td>{r.fired}</td><td>{r.accepted}</td><td>{r.overridden}</td>
+                  <td className="py-3 pr-4">{r.detector}</td><td>{r.fired}</td><td>{r.accepted}</td><td>{r.overridden}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
