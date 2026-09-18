@@ -1,4 +1,4 @@
-# ZeroBus — AI-Based Smart Bus Ticketing with Predictive Analytics
+# ZeroBus 
 
 A conversational bus-ticketing web app: describe your trip in chat, get buses,
 mistake warnings before you pay, and a QR ticket — no forms. Built as a  project for college . FastAPI backend, React + TypeScript frontend,
