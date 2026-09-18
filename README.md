@@ -1,7 +1,7 @@
 # ZeroBus 
 
 A conversational bus-ticketing web app: describe your trip in chat, get buses,
-mistake warnings before you pay, and a QR ticket — no forms. Built as a  project for college . FastAPI backend, React + TypeScript frontend,
+mistake warnings before you pay, and a QR ticket — no forms. Built as a VTU project for college . FastAPI backend, React + TypeScript frontend,
 Supabase Postgres, local Hugging Face classifier, Razorpay in test mode.
 
 > **Research prototype.** Bus inventory, GPS tracking, and crowd levels are
