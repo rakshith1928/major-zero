@@ -1,0 +1,37 @@
+# Render free-tier backend for ZeroBus (no GCP billing needed)
+# Connect https://github.com/rakshith1928/major-zero.git in render.com -> New -> Blueprint
+services:
+  - type: web
+    name: zerobus-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: HF_HUB_OFFLINE
+        value: 1
+      - key: TRANSFORMERS_OFFLINE
+        value: 1
+      - key: DATABASE_URL
+        sync: false # paste Supabase postgresql+psycopg2 URL in Render dashboard
+      - key: JWT_SECRET
+        sync: false
+        generateValue: true
+      - key: FERNET_MASTER
+        sync: false
+        generateValue: true
+      - key: TICKET_SECRET
+        sync: false
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false # set after Firebase URL known, e.g. https://velvety-citizen-491119-b1.web.app
+      - key: WEBAUTHN_RP_ID
+        sync: false
+      - key: WEBAUTHN_ORIGIN
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
