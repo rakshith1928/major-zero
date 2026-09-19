@@ -62,8 +62,9 @@ passkeys, Razorpay checkout.js in test mode. API base from `VITE_API_URL`
 (default `http://localhost:8000`).
 
 ## 7. Out of scope (v1)
-Native apps, SMS, real GPS/CCTV, multilingual UI, dark mode toggle,
-Negotiator/Undo features — all future work per report Chapter 7.
+Native apps, SMS, real GPS/CCTV, multilingual UI, dark mode toggle — all
+future work per report Chapter 7. (Requirement negotiation and booking undo
+shipped after v1: see the negotiator/undo flows in `Chat.tsx`.)
 
 ## 8. Refresh direction: quiet, confident travel
 

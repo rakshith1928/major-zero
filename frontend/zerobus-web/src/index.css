@@ -210,6 +210,8 @@
   .zb-fare-row + .zb-fare-row { @apply mt-1; }
   .zb-fare-best { @apply border-l-4 border-l-amber-400 bg-amber-50/70; }
   .zb-fare-pill { @apply ml-auto rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-indigo-950; }
+  /* Requirement Negotiator note. */
+  .zb-negotiation { @apply rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-slate-800; }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }

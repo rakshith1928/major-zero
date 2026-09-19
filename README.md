@@ -44,7 +44,9 @@ The nav is responsive — below desktop width the tabs wrap onto a second row:
 - **Chat booking** (`/chat`) — natural-language trip search, saved-passenger
   capture, deadline-aware mistake warnings with a one-tap safer alternative.
   "Same as last time" rebooks your most frequent route; "which day is
-  cheapest?" compares fares across dates with a cheapest-day card.
+  cheapest?" compares fares across dates with a cheapest-day card; "undo"
+  walks back your last change. Impossible requests get a named compromise
+  (e.g. raise budget by ₹X) instead of an empty list.
 - **Trip Guardian** (`/tickets`) — paid deadline bookings are watched against
   live (simulated) ETAs; at-risk trips alert and offer one-tap rebooking on a
   detector-clean earlier bus. Demo delays can be staged from the card.

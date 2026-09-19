@@ -239,6 +239,7 @@ const EXAMPLE_PROMPTS = [
   "Bangalore to Hyderabad on Friday, 2 seats",
   "Which day is cheapest to Chennai?",
   "Same as last time",
+  "Undo my last change",
 ];
 
 function loadStored() {
@@ -259,6 +260,7 @@ export default function Chat() {
   const [slots, setSlots] = useState<Record<string, string | number | null>>(stored?.slots || {});
   const [buses, setBuses] = useState<BusCard[]>(stored?.buses || []);
   const [fareComparison, setFareComparison] = useState<FareComparison | null>(null);
+  const [negotiation, setNegotiation] = useState<{ dropped: string[] } | null>(null);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const [booking, setBooking] = useState<BookingCreated | null>(stored?.booking || null);
   const [input, setInput] = useState("");
@@ -304,6 +306,7 @@ export default function Chat() {
       setSlots(reply.slots || {});
       setBuses(reply.buses || []);
       setFareComparison(reply.fare_comparison || null);
+      setNegotiation(reply.negotiation || null);
       setMessages((m) => [...m, { role: "assistant", content: reply.assistant_text }]);
       if ((reply.slots || {}).passenger_ref === "other") {
         try {
@@ -454,6 +457,11 @@ export default function Chat() {
           </div>
         )}
         {fareComparison && <FareCard comparison={fareComparison} />}
+        {negotiation && (
+          <p className="zb-negotiation zb-enter" aria-live="polite">
+            Showing a compromise — relaxed your {negotiation.dropped.join(" and ")}. Pick any bus below to continue.
+          </p>
+        )}
         {buses.length > 0 && (
           <div className="grid gap-3 md:grid-cols-2">
             {buses.map((b) => (

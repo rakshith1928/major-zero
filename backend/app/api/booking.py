@@ -13,7 +13,7 @@ from app.api.deps import get_current_user
 from app.config import settings
 from app.db import get_db
 from app.models import Booking, Bus, ChatMessage, PassengerProfile, User, WarningLog
-from app.services import fare_advice, vault
+from app.services import fare_advice, negotiator, vault
 from app.services.detectors import (
     boarding_deviation,
     date_time_errors,
@@ -35,10 +35,18 @@ _COMPARE_REQUEST = re.compile(
     r"\bcheaper\b|\bcheapest\b|\bflexible\b|\bsave\b|\bwhich day\b|\bcompare\b",
     re.IGNORECASE,
 )
+_UNDO_REQUEST = re.compile(
+    r"\bund(o|ne)\b|\bgo back\b|\bprevious\b|\brevert\b",
+    re.IGNORECASE,
+)
 
 
 def _is_repeat_request(message: str) -> bool:
     return _REPEAT_REQUEST.search(message or "") is not None
+
+
+def _is_undo_request(message: str) -> bool:
+    return _UNDO_REQUEST.search(message or "") is not None
 
 
 def _frequent_route(db: Session, user_id: int) -> tuple[str, str] | None:
@@ -135,11 +143,26 @@ def _session_state(db: Session, user_id: int, session_id: str) -> dict:
     return {"state": "NEW", "slots": {}}
 
 
+def _push_version(prev_slots: dict, prev_versions: list, slots: dict) -> list:
+    """Append the pre-turn slots when they changed (cap 10)."""
+    if slots == prev_slots:
+        return prev_versions
+    return (prev_versions + [prev_slots])[-10:]
+
+
 def _save_state(db: Session, user_id: int, session_id: str, state: dict) -> None:
     db.add(
         ChatMessage(
             user_id=user_id, session_id=session_id, role="state", content=json.dumps(state)
         )
+    )
+
+
+def _save_versioned(
+    db: Session, user_id: int, session_id: str, new_state: str, slots: dict, versions: list
+) -> None:
+    _save_state(
+        db, user_id, session_id, {"state": new_state, "slots": slots, "versions": versions}
     )
 
 
@@ -168,7 +191,29 @@ def search(req: SearchRequest, user: User = Depends(get_current_user), db: Sessi
 @router.post("/chat")
 def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     state = _session_state(db, user.id, req.session_id)
+    prev_slots = dict(state.get("slots", {}))
+    prev_versions = list(state.get("versions", []))
     slots = get_extractor().extract(req.message, state.get("slots", {}))
+    restored = False
+    # Booking Undo: restore the pre-turn slots instead of interpreting the
+    # message as a new choice. The extractor output for this turn is dropped.
+    if _is_undo_request(req.message):
+        if not prev_versions:
+            assistant_text = "Nothing to undo yet — tell me your trip and we'll pick it up from there."
+            _save_versioned(db, user.id, req.session_id, "NEEDS_INFO", prev_slots, prev_versions)
+            _log(db, user.id, req.session_id, "user", req.message)
+            _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": prev_slots})
+            db.commit()
+            return {
+                "state": "NEEDS_INFO",
+                "slots": prev_slots,
+                "buses": [],
+                "assistant_text": assistant_text,
+                "messages": [{"role": "assistant", "content": assistant_text}],
+            }
+        slots = dict(prev_versions[-1])
+        prev_versions = prev_versions[:-1]
+        restored = True
     # Trip Guardian MVP — "same as last time": refill the traveller's most
     # frequent route when they name no places. Explicit places always win,
     # and first-timers fall through to the normal missing-slot questions.
@@ -184,8 +229,9 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
                 slots["travel_date"] = (date.today() + timedelta(days=1)).isoformat()
     # T04: the classifier is authoritative for WHO the ticket is for, but an
     # explicit earlier signal wins (e.g. deadline follow-ups must not reset it).
+    # A restored undo keeps its saved passenger_ref untouched.
     try:
-        if not state.get("slots", {}).get("passenger_ref"):
+        if not restored and not state.get("slots", {}).get("passenger_ref"):
             slots["passenger_ref"] = classify_passenger_ref(req.message)
     except Exception:
         slots.setdefault("passenger_ref", slots.get("passenger_ref"))
@@ -217,7 +263,10 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
                 api_key=settings.openrouter_api_key,
                 model=settings.openrouter_model,
             )
-            _save_state(db, user.id, req.session_id, {"state": "RESULTS", "slots": slots})
+            _save_versioned(
+                db, user.id, req.session_id, "RESULTS", slots,
+                _push_version(prev_slots, prev_versions, slots),
+            )
             _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": slots})
             db.commit()
             return {
@@ -229,7 +278,10 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
                 "fare_comparison": comparison,
             }
         assistant_text = fare_advice.template_summary(comparison)
-        _save_state(db, user.id, req.session_id, {"state": "NEEDS_INFO", "slots": slots})
+        _save_versioned(
+            db, user.id, req.session_id, "NEEDS_INFO", slots,
+            _push_version(prev_slots, prev_versions, slots),
+        )
         _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": slots})
         db.commit()
         return {
@@ -244,7 +296,8 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
     missing = [s for s in REQUIRED_SLOTS if not slots.get(s)]
     buses: list = []
     assistant_text = ""
-    if slots.get("passenger_ref") == "ambiguous" and not missing:
+    negotiation = None
+    if slots.get("passenger_ref") == "ambiguous" and not missing and not restored:
         assistant_text = (
             "Just to confirm — is this ticket for you, or for someone else? "
             "Reply 'for me' or, e.g., 'for my mother'."
@@ -269,17 +322,50 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
                 slots.get("budget"),
             )
             new_state = "RESULTS"
-            if slots.get("deadline_time"):
-                assistant_text = f"Found {len(buses)} bus(es). I will double-check arrivals against your {slots['deadline_time']} deadline before payment."
-            else:
-                assistant_text = (
-                    f"Found {len(buses)} bus(es). "
-                    "Do you have an arrival deadline (exam, meeting) I should watch for?"
+            negotiation = None
+            if not buses and (slots.get("bus_type") or slots.get("budget") is not None):
+                # Requirement Negotiator: name the exact trade instead of
+                # dead-ending on "Found 0 bus(es)". Relaxed slots are stored
+                # so the suggested buses book with one tap.
+                wanted_budget = slots.get("budget")
+                wanted_type = slots.get("bus_type")
+                plan = negotiator.relax_search(
+                    db, slots["origin"], slots["destination"], travel,
+                    wanted_type, wanted_budget,
                 )
-    _save_state(db, user.id, req.session_id, {"state": new_state, "slots": slots})
+                if plan is not None:
+                    slots["bus_type"] = plan["relaxed_slots"]["bus_type"]
+                    slots["budget"] = plan["relaxed_slots"]["budget"]
+                    buses = _search(
+                        db, slots["origin"], slots["destination"], travel,
+                        slots.get("bus_type"), slots.get("budget"),
+                    )
+                    cheapest = min(buses, key=lambda b: b["fare"])
+                    negotiation = {
+                        "dropped": plan["dropped"],
+                        "relaxed_slots": plan["relaxed_slots"],
+                    }
+                    assistant_text = negotiator.compromise_text(
+                        plan["dropped"], wanted_budget, wanted_type,
+                        cheapest["fare"], f"{cheapest['operator']} {cheapest['bus_type']}",
+                    )
+            if negotiation is None:
+                if slots.get("deadline_time"):
+                    assistant_text = f"Found {len(buses)} bus(es). I will double-check arrivals against your {slots['deadline_time']} deadline before payment."
+                else:
+                    assistant_text = (
+                        f"Found {len(buses)} bus(es). "
+                        "Do you have an arrival deadline (exam, meeting) I should watch for?"
+                    )
+    if restored:
+        assistant_text = "Went back to your previous choice. " + assistant_text
+        versions = prev_versions
+    else:
+        versions = _push_version(prev_slots, prev_versions, slots)
+    _save_versioned(db, user.id, req.session_id, new_state, slots, versions)
     _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": slots})
     db.commit()
-    return {
+    response = {
         "state": new_state,
         "slots": slots,
         "buses": buses,
@@ -288,6 +374,9 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
             {"role": "assistant", "content": assistant_text},
         ],
     }
+    if negotiation is not None:
+        response["negotiation"] = negotiation
+    return response
 
 
 @router.post("/select")
@@ -357,6 +446,7 @@ def select(req: SelectRequest, user: User = Depends(get_current_user), db: Sessi
         {
             "state": "PRE_PAYMENT",
             "slots": slots,
+            "versions": state.get("versions", []),
             "bus_id": bus.id,
             "booking_ref": booking.booking_ref,
         },
