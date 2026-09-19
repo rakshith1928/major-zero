@@ -2,7 +2,7 @@
 
 Conversational bus-ticketing prototype (VTU project): FastAPI backend + React 19/Vite frontend, Supabase Postgres prod / SQLite dev. Live on Firebase Hosting + Render free tier (`render.yaml` auto-deploys on push to `main`).
 
-**Full operator manual: [`AGENTS.md`](AGENTS.md)** — read it before any backend, frontend, or deploy work. It covers commands, domain rules, test traps, secrets, and task recipes. The summary below is only the critical path.
+**Full operator manual: @AGENTS.md** — read it before any backend, frontend, or deploy work. It covers commands, domain rules, test traps, secrets, and task recipes. The summary below is only the critical path.
 
 ## Critical path
 
