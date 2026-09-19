@@ -10,9 +10,10 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.config import settings
 from app.db import get_db
 from app.models import Booking, Bus, ChatMessage, PassengerProfile, User, WarningLog
-from app.services import vault
+from app.services import fare_advice, vault
 from app.services.detectors import (
     boarding_deviation,
     date_time_errors,
@@ -28,6 +29,10 @@ REQUIRED_SLOTS = ["origin", "destination", "travel_date"]
 
 _REPEAT_REQUEST = re.compile(
     r"\bsame as last\b|\bbook .*again\b|\brepeat\b|\bsame trip\b|\busual\b",
+    re.IGNORECASE,
+)
+_COMPARE_REQUEST = re.compile(
+    r"\bcheaper\b|\bcheapest\b|\bflexible\b|\bsave\b|\bwhich day\b|\bcompare\b",
     re.IGNORECASE,
 )
 
@@ -185,6 +190,56 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
     except Exception:
         slots.setdefault("passenger_ref", slots.get("passenger_ref"))
     _log(db, user.id, req.session_id, "user", req.message)
+
+    # Fare copilot: "which day is cheapest?" compares dated options for the
+    # known route and continues booking on the cheapest date.
+    if (
+        _COMPARE_REQUEST.search(req.message or "")
+        and slots.get("origin")
+        and slots.get("destination")
+    ):
+        compare_days = fare_advice.mentioned_dates(req.message, date.today())
+        if not compare_days:
+            compare_days = [date.today() + timedelta(days=i + 1) for i in range(3)]
+        comparison = fare_advice.compare_dates(
+            db, slots["origin"], slots["destination"], compare_days, slots.get("bus_type")
+        )
+        if comparison.get("cheapest"):
+            cheapest_date = comparison["cheapest"]["date"]
+            slots["travel_date"] = cheapest_date
+            travel = date.fromisoformat(cheapest_date)
+            buses = _search(
+                db, slots["origin"], slots["destination"], travel,
+                slots.get("bus_type"), slots.get("budget"),
+            )
+            assistant_text = fare_advice.summarize(
+                comparison["options"],
+                api_key=settings.openrouter_api_key,
+                model=settings.openrouter_model,
+            )
+            _save_state(db, user.id, req.session_id, {"state": "RESULTS", "slots": slots})
+            _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": slots})
+            db.commit()
+            return {
+                "state": "RESULTS",
+                "slots": slots,
+                "buses": buses,
+                "assistant_text": assistant_text,
+                "messages": [{"role": "assistant", "content": assistant_text}],
+                "fare_comparison": comparison,
+            }
+        assistant_text = fare_advice.template_summary(comparison)
+        _save_state(db, user.id, req.session_id, {"state": "NEEDS_INFO", "slots": slots})
+        _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": slots})
+        db.commit()
+        return {
+            "state": "NEEDS_INFO",
+            "slots": slots,
+            "buses": [],
+            "assistant_text": assistant_text,
+            "messages": [{"role": "assistant", "content": assistant_text}],
+            "fare_comparison": comparison,
+        }
 
     missing = [s for s in REQUIRED_SLOTS if not slots.get(s)]
     buses: list = []

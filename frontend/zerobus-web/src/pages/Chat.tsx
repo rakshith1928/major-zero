@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PageHeader, SignInPrompt } from "../components/UI";
-import { api, type BusCard, type BookingCreated, type SavedPassenger, type Warning } from "../api";
+import { api, type BusCard, type BookingCreated, type FareComparison, type SavedPassenger, type Warning } from "../api";
 import { useAuth } from "../auth";
 
 declare global {
@@ -207,12 +207,37 @@ function CaptureSteps({ capture, setCapture, sessionId, setMessages }: {
   );
 }
 
+function FareCard({ comparison }: { comparison: FareComparison }) {
+  const day = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+  };
+  return (
+    <div className="zb-fare zb-enter" aria-label="Fare comparison by date">
+      {comparison.options.map((o) => {
+        const isBest = comparison.cheapest?.date === o.date;
+        return (
+          <div key={o.date} className={`zb-fare-row${isBest ? " zb-fare-best" : ""}`}>
+            <span className="text-sm font-medium text-slate-800">{day(o.date)}</span>
+            {o.min_fare === null ? (
+              <span className="text-sm text-slate-400">No buses</span>
+            ) : (
+              <span className="text-sm font-bold tabular-nums text-indigo-950">₹{o.min_fare}</span>
+            )}
+            {isBest && <span className="zb-fare-pill">Cheapest</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const STORE_KEY = "zb-chat-session";
 
 const EXAMPLE_PROMPTS = [
   "AC sleeper from Bangalore to Chennai tomorrow",
   "Bangalore to Hyderabad on Friday, 2 seats",
-  "Cheapest bus to Chennai before 8 in the morning",
+  "Which day is cheapest to Chennai?",
   "Same as last time",
 ];
 
@@ -233,6 +258,7 @@ export default function Chat() {
   ]);
   const [slots, setSlots] = useState<Record<string, string | number | null>>(stored?.slots || {});
   const [buses, setBuses] = useState<BusCard[]>(stored?.buses || []);
+  const [fareComparison, setFareComparison] = useState<FareComparison | null>(null);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const [booking, setBooking] = useState<BookingCreated | null>(stored?.booking || null);
   const [input, setInput] = useState("");
@@ -277,6 +303,7 @@ export default function Chat() {
       const reply = await api.chat(sessionId, message);
       setSlots(reply.slots || {});
       setBuses(reply.buses || []);
+      setFareComparison(reply.fare_comparison || null);
       setMessages((m) => [...m, { role: "assistant", content: reply.assistant_text }]);
       if ((reply.slots || {}).passenger_ref === "other") {
         try {
@@ -426,6 +453,7 @@ export default function Chat() {
             ))}
           </div>
         )}
+        {fareComparison && <FareCard comparison={fareComparison} />}
         {buses.length > 0 && (
           <div className="grid gap-3 md:grid-cols-2">
             {buses.map((b) => (

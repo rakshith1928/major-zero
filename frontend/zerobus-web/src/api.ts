@@ -38,7 +38,13 @@ export interface BusCard {
 export interface ChatReply {
   state: string; slots: Record<string, string | number | null>; buses: BusCard[];
   assistant_text: string; messages: { role: string; content: string }[];
+  fare_comparison?: FareComparison;
 }
+export interface FareOption {
+  date: string; min_fare: number | null; buses: number;
+  cheapest_operator?: string; cheapest_departure?: string;
+}
+export interface FareComparison { options: FareOption[]; cheapest: FareOption | null }
 export interface BookingCreated {
   booking_ref: string; status: string; bus: BusCard;
   passenger: { name: string; age: number; gender: string; phone: string };
