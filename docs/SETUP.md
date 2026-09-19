@@ -47,6 +47,21 @@ npm run dev
 Open <http://localhost:5173>. The frontend calls `http://localhost:8000` by default;
 override with `VITE_API_URL` in `frontend/zerobus-web/.env` if needed.
 
+## Live environments
+
+| | URL |
+|---|---|
+| App (Firebase Hosting) | <https://college-project-c6b6a.web.app> |
+| API (Render, free tier) | <https://zerobus-api.onrender.com> |
+
+- Backend deploys from `render.yaml` (Blueprint) on every push to `main`;
+  first request after idle cold-starts (~50s).
+- Frontend: `cd frontend/zerobus-web && $env:VITE_API_URL="https://zerobus-api.onrender.com"; npm run build; firebase deploy --only hosting`
+- Prod-only env vars (Render dashboard, never committed): `DATABASE_URL`,
+  `JWT_SECRET`, `FERNET_MASTER`, `TICKET_SECRET`, `OPENROUTER_API_KEY`
+  (empty = rule-based chat), `CORS_ORIGINS`, `WEBAUTHN_RP_ID`,
+  `WEBAUTHN_ORIGIN`, `ADMIN_EMAILS`.
+
 ## 3. Database migration (SQLite → Supabase)
 
 Only needed once per project. The tool is read-only by default:

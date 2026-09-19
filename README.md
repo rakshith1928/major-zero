@@ -2,11 +2,20 @@
 
 A conversational bus-ticketing web app: describe your trip in chat, get buses,
 mistake warnings before you pay, and a QR ticket — no forms. Built as a VTU project for college . FastAPI backend, React + TypeScript frontend,
-Supabase Postgres, local Hugging Face classifier, Razorpay in test mode.
+Supabase Postgres, local Hugging Face classifier + OpenRouter free-tier LLM extraction, Razorpay in test mode.
 
 > **Research prototype.** Bus inventory, GPS tracking, and crowd levels are
 > simulated and labelled in the UI. Payments run in Razorpay test mode — no
 > real money moves.
+
+## Live demo
+
+| | URL |
+|---|---|
+| App (Firebase Hosting) | <https://college-project-c6b6a.web.app> |
+| API (Render) | <https://zerobus-api.onrender.com> (`/health` → `{"status":"ok"}`) |
+
+Render free tier cold-starts (~50s on first request); the UI retries automatically.
 
 ## Screens
 
@@ -34,6 +43,11 @@ The nav is responsive — below desktop width the tabs wrap onto a second row:
 
 - **Chat booking** (`/chat`) — natural-language trip search, saved-passenger
   capture, deadline-aware mistake warnings with a one-tap safer alternative.
+  "Same as last time" rebooks your most frequent route; "which day is
+  cheapest?" compares fares across dates with a cheapest-day card.
+- **Trip Guardian** (`/tickets`) — paid deadline bookings are watched against
+  live (simulated) ETAs; at-risk trips alert and offer one-tap rebooking on a
+  detector-clean earlier bus. Demo delays can be staged from the card.
 - **Live tracking** (`/track`) — simulated positions on a Leaflet map with ETA.
 - **Ticket wallet** (`/tickets`) — QR tickets + booking history; conductors get
   a code/camera verifier at `/verify`.
