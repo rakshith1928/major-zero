@@ -25,10 +25,14 @@ services:
       - key: TICKET_SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        sync: false # set after Firebase URL known, e.g. https://velvety-citizen-491119-b1.web.app
+        value: https://college-project-c6b6a.web.app
       - key: WEBAUTHN_RP_ID
-        sync: false
+        value: college-project-c6b6a.web.app
       - key: WEBAUTHN_ORIGIN
-        sync: false
+        value: https://college-project-c6b6a.web.app
       - key: ADMIN_EMAILS
         sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false # paste sk-or-v1... from openrouter.ai in Render dashboard; empty = stub rules
+      - key: OPENROUTER_MODEL
+        value: openrouter/free

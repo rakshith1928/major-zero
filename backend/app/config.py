@@ -42,6 +42,8 @@ class Settings(BaseSettings):
 
     # External services (test/placeholder keys until real ones are configured).
     gemini_api_key: str = ""
+    openrouter_api_key: str = ""
+    openrouter_model: str = "openrouter/free"
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""
     smtp_host: str = ""

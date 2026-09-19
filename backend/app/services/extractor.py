@@ -132,10 +132,106 @@ class StubSlotExtractor:
         return slots
 
 
+class OpenRouterSlotExtractor:
+    """LLM slot extraction via OpenRouter (OpenAI-compatible), stub fallback.
+
+    - No key -> pure stub (offline tests, free Render without key).
+    - Any network/parse error -> stub result, never raises.
+    - Valid LLM keys overlay stub slots (origin/destination normalized).
+    """
+
+    _ALLOWED = ("origin", "destination", "travel_date", "bus_type", "budget", "deadline_time")
+
+    def __init__(self, api_key: str = "", model: str = "openrouter/free", http_post=None, timeout: int = 8):
+        self.api_key = api_key or ""
+        self.model = model
+        self.http_post = http_post
+        self.timeout = timeout
+        self._stub = StubSlotExtractor()
+
+    def extract(self, message: str, session_slots: dict) -> dict:
+        stub_slots = self._stub.extract(message, session_slots)
+        if not self.api_key:
+            return stub_slots
+        try:
+            if self.http_post is not None:
+                data = self.http_post(message, dict(stub_slots))
+            else:
+                data = self._call_api(message, dict(stub_slots))
+            if not isinstance(data, dict):
+                return stub_slots
+            merged = dict(stub_slots)
+            for key in self._ALLOWED:
+                value = data.get(key)
+                if value is None or value == "":
+                    continue
+                if key in ("origin", "destination") and isinstance(value, str):
+                    merged[key] = _norm_place(value)
+                else:
+                    merged[key] = value
+            return merged
+        except Exception:
+            return stub_slots
+
+    def _call_api(self, message: str, session_slots: dict) -> dict:
+        import json as _json
+
+        import httpx
+
+        system = (
+            "Extract bus-booking slots as JSON only. Keys: origin, destination, "
+            "travel_date (YYYY-MM-DD), bus_type, budget (number), deadline_time (HH:MM). "
+            "Omit unknown keys. No markdown, no commentary."
+        )
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system},
+                {
+                    "role": "user",
+                    "content": f"Known slots: {_json.dumps(session_slots)} Message: {message}",
+                },
+            ],
+            "temperature": 0,
+        }
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        with httpx.Client(timeout=self.timeout) as client:
+            resp = client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+            )
+            resp.raise_for_status()
+            body = resp.json()
+        content = body["choices"][0]["message"]["content"]
+        if isinstance(content, str):
+            text = content.strip()
+            if text.startswith("```"):
+                text = text.strip("`")
+                if "\n" in text:
+                    text = text.split("\n", 1)[1]
+                    if text.lower().startswith("json"):
+                        text = text[4:].lstrip()
+            return _json.loads(text)
+        return {}
+
+
 _extractor: SlotExtractor = StubSlotExtractor()
 
 
 def get_extractor() -> SlotExtractor:
+    try:
+        from app.config import settings as _settings
+
+        key = getattr(_settings, "openrouter_api_key", "")
+        model = getattr(_settings, "openrouter_model", "openrouter/free")
+        if key and isinstance(_extractor, StubSlotExtractor):
+            return OpenRouterSlotExtractor(api_key=key, model=model)
+    except Exception:
+        pass
     return _extractor
 
 
