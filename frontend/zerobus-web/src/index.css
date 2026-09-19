@@ -179,6 +179,25 @@
   .zb-verify-result .zb-icon { @apply mt-0.5 h-4 w-4 shrink-0; }
   .zb-verify-valid .zb-icon { @apply text-emerald-700; }
   .zb-verify-invalid .zb-icon { @apply text-red-600; }
+  /* Batch 2: track, dashboard, profile, auth polish. */
+  .zb-eta { @apply mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-slate-800; }
+  .zb-map-wrap { @apply relative; }
+  .zb-map-chip { @apply absolute right-3 top-3 z-[500] rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800; box-shadow: 0 2px 8px #00000014; }
+  .zb-stat { transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+  .zb-icon-tile-sm { @apply h-9 w-9 rounded-xl; }
+  .zb-icon-tile-sm .zb-icon { @apply h-5 w-5; }
+  @media (hover: hover) {
+    .zb-stat:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 14px 32px #1e1b4b14; }
+  }
+  .zb-table thead th { @apply sticky top-0 bg-white py-2 pr-4 font-semibold; }
+  .zb-table tbody tr { transition: background-color 150ms; }
+  .zb-table tbody tr:hover { background: #f8fafc; }
+  .zb-empty { @apply mt-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center text-sm text-slate-500; }
+  .zb-avatar { @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-800; }
+  .zb-avatar .zb-icon { @apply h-5 w-5; }
+  .zb-or { @apply my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400; }
+  .zb-or::before, .zb-or::after { content: ""; @apply h-px flex-1 bg-slate-200; }
+  .zb-form-error { @apply rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700; }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }

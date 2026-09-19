@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { api } from "../api";
 import { useAuth } from "../auth";
-import { Icon, PageHeader, SignInPrompt } from "../components/UI";
+import { Icon, PageHeader, SignInPrompt, type IconName } from "../components/UI";
 
 import marker2x from "leaflet/dist/images/marker-icon-2x.png";
 import marker from "leaflet/dist/images/marker-icon.png";
@@ -39,8 +39,15 @@ export default function Dashboard() {
 
   if (!user) return <SignInPrompt icon="chart" title="Your operations overview" description="Log in with an administrator account to view bookings, warning outcomes, and route demand." />;
   if (!user.is_admin) return <Navigate to="/login" replace />;
-  if (error) return <p className="mx-auto max-w-md px-4 py-10 text-red-600">Admin only: {error}</p>;
-  if (!data) return <p className="mx-auto max-w-md px-4 py-10 text-slate-600">Loading dashboard...</p>;
+  if (error) return <div className="zb-page-narrow"><p className="zb-form-error mt-10" role="alert">Admin only: {error}</p></div>;
+  if (!data) return <div className="zb-page"><div className="zb-panel mt-6 text-sm text-slate-600" aria-live="polite">Loading dashboard...</div></div>;
+
+  const statIcon = (key: string): IconName => {
+    if (/book|ticket/.test(key)) return "ticket";
+    if (/warn|safety/.test(key)) return "shield";
+    if (/user|passenger/.test(key)) return "user";
+    return "chart";
+  };
 
   const warningRows = Object.entries(data.warnings || {}).map(([detector, counts]) => ({ detector, ...counts }));
   const accepted = warningRows.reduce((s, r) => s + (r.accepted || 0), 0);
@@ -57,9 +64,10 @@ export default function Dashboard() {
       <PageHeader icon="chart" eyebrow="Operations workspace" title="Admin dashboard" description="An overview of bookings, passenger safety signals, and demand across your routes." />
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {Object.entries(data.totals).map(([k, v]) => (
-          <div key={k} className="zb-panel min-w-0">
-            <p className="break-words text-xs uppercase tracking-wide text-slate-500">{k.replaceAll("_", " ")}</p>
-            <p className="mt-3 text-3xl font-bold tabular-nums text-indigo-950">{v}</p>
+          <div key={k} className="zb-panel zb-stat min-w-0">
+            <span className="zb-icon-tile zb-icon-tile-sm"><Icon name={statIcon(k)} /></span>
+            <p className="mt-3 break-words text-xs uppercase tracking-wide text-slate-500">{k.replaceAll("_", " ")}</p>
+            <p className="mt-1 text-3xl font-bold tabular-nums text-indigo-950">{v}</p>
           </div>
         ))}
       </div>
@@ -122,7 +130,7 @@ export default function Dashboard() {
         <div className="zb-panel mt-4 min-w-0">
           <h2 className="font-semibold text-slate-900">Warnings by detector</h2>
           <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
+          <table className="zb-table w-full min-w-[480px] text-sm">
             <thead><tr className="text-left text-slate-500"><th>Detector</th><th>Fired</th><th>Accepted</th><th>Overridden</th></tr></thead>
             <tbody>
               {warningRows.map((r) => (

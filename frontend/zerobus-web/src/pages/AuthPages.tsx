@@ -70,7 +70,7 @@ export function Register() {
           </Field>
         </div>
         <Field label="Phone"><input className={inputCls} required minLength={10} maxLength={15} value={form.phone} onChange={set("phone")} /></Field>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="zb-form-error" role="alert">{error}</p>}
         <button className="zb-action w-full rounded-lg bg-indigo-900 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800">Create account</button>
         <button type="button" onClick={registerPasskey} className="zb-action w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-indigo-950 hover:bg-amber-300">
           Create account with fingerprint
@@ -125,12 +125,13 @@ export function Login() {
       <button onClick={passkeyLogin} className="zb-action mt-4 w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-indigo-950 hover:bg-amber-300">
         Log in with fingerprint
       </button>
-      <div className="my-4 border-t border-slate-200 pt-4">
-        <p className="text-sm text-slate-600">Or use your password:</p>
+      <div className="zb-or" aria-hidden="true"><span>or</span></div>
+      <div>
+        <p className="text-sm text-slate-600">Use your password:</p>
         <form onSubmit={passwordLogin} className="mt-2 space-y-3">
           <Field label="Email"><input className={inputCls} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
           <Field label="Password"><input className={inputCls} type="password" required value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="zb-form-error" role="alert">{error}</p>}
           <button className="zb-action w-full rounded-lg bg-indigo-900 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800">Log in</button>
         </form>
       </div>
