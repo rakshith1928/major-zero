@@ -92,6 +92,58 @@
   .zb-nav-inner { gap: 12px; padding-inline: 16px; }
   .zb-nav-link { padding-inline: 10px; }
 }
+  /* Landing revamp: stats, reveal, animated cards, new sections. */
+  .zb-hero-stats { @apply relative mt-8 flex flex-wrap gap-x-7 gap-y-2 border-t border-white/10 pt-5 text-[13px]; }
+  .zb-hero-stats strong { @apply mr-1.5 text-lg font-bold tabular-nums text-amber-300; }
+  .zb-hero-stats span { @apply text-indigo-200; }
+  .zb-reveal { opacity: 1; }
+  .js-reveal .zb-reveal { opacity: 0; transform: translateY(18px); transition: opacity 560ms ease, transform 560ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .js-reveal .zb-reveal.is-visible { opacity: 1; transform: none; }
+  @keyframes zb-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .zb-hero-copy > * { animation: zb-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .zb-hero-copy > *:nth-child(2) { animation-delay: 90ms; }
+  .zb-hero-copy > *:nth-child(3) { animation-delay: 180ms; }
+  .zb-hero-copy > *:nth-child(4) { animation-delay: 270ms; }
+  .zb-hero-copy > *:nth-child(5) { animation-delay: 360ms; }
+  .zb-hero-copy > *:nth-child(6) { animation-delay: 450ms; }
+  .zb-conversation-body > * { animation: zb-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .zb-conversation-body > *:nth-child(2) { animation-delay: 500ms; }
+  .zb-conversation-body > *:nth-child(3) { animation-delay: 950ms; }
+  .zb-conversation-body > *:nth-child(4) { animation-delay: 1400ms; }
+  .zb-route-strip { animation: zb-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) 1800ms both; }
+  .zb-steps { @apply mt-12; }
+  .zb-steps h2, .zb-corridors h2 { @apply mt-2 text-2xl font-bold tracking-tight text-indigo-950; }
+  .zb-step-grid { @apply mt-6 grid gap-4 md:grid-cols-3; }
+  .zb-step-card { @apply relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6; }
+  .zb-step-card::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #f59e0b; opacity: 0; transition: opacity 180ms; }
+  .zb-step-num { @apply text-xs font-bold tabular-nums tracking-widest text-indigo-300; }
+  .zb-step-card h3 { @apply mt-3 font-semibold text-indigo-950; }
+  .zb-step-card p { @apply mt-2 text-sm leading-relaxed text-slate-600; }
+  .zb-corridors { @apply mt-12; }
+  .zb-corridor-grid { @apply mt-6 grid gap-4 md:grid-cols-2; }
+  .zb-corridor-card { @apply block rounded-2xl border border-slate-200 bg-white p-6 no-underline; }
+  .zb-corridor-route { @apply flex items-center gap-3 text-lg font-bold tracking-tight text-indigo-950; }
+  .zb-corridor-route .zb-icon { @apply h-5 w-5 text-amber-500; }
+  .zb-corridor-meta { @apply mt-2 text-sm text-slate-500; }
+  .zb-corridor-ops { @apply mt-4 flex flex-wrap gap-2; }
+  .zb-corridor-ops span { @apply rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800; }
+  .zb-cta { @apply relative mt-12 overflow-hidden rounded-3xl bg-indigo-950 px-8 py-12 text-center text-white; }
+  .zb-cta::before { content: ""; position: absolute; width: 360px; height: 360px; left: -120px; bottom: -200px; border: 1px solid #ffffff12; border-radius: 50%; pointer-events: none; }
+  .zb-cta h2 { @apply relative text-2xl font-bold tracking-tight md:text-3xl; }
+  .zb-cta h2 > span { @apply text-amber-300; }
+  .zb-cta p { @apply relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-indigo-200; }
+  .zb-cta .zb-button-amber { @apply relative mt-7; }
+  @media (hover: hover) {
+    .zb-feature-card { transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+    .zb-feature-card:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 14px 32px #1e1b4b14; }
+    .zb-feature-card:hover .zb-icon-tile { background: #312e81; border-color: #312e81; color: #fff; }
+    .zb-icon-tile { transition: background-color 180ms, border-color 180ms, color 180ms; }
+    .zb-step-card:hover { border-color: #c7d2fe; box-shadow: 0 14px 32px #1e1b4b14; }
+    .zb-step-card:hover::after { opacity: 1; }
+    .zb-step-card { transition: border-color 180ms, box-shadow 180ms; }
+    .zb-corridor-card { transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+    .zb-corridor-card:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 14px 32px #1e1b4b14; }
+  }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }
