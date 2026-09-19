@@ -57,6 +57,15 @@ export interface HistoryEntry {
   booking_ref: string; status: string; travel_date: string; fare: number;
   bus_id: number; origin: string; destination: string; deadline_time: string | null;
 }
+export interface RouteOption {
+  bus_id: number; operator: string; bus_type: string; departure: string;
+  arrival: string; arrival_day_offset: number; fare: number; seats_left: number;
+  status: string; eta_minutes: number;
+}
+export interface RouteAdvice {
+  origin: string; destination: string; date: string; simulated: boolean;
+  buses: RouteOption[]; recommended_bus_id: number | null; reason: string;
+}
 export interface GuardianStatus {
   booking_ref: string; status: "OK" | "AT_RISK" | "NO_DEADLINE";
   predicted_arrival?: string; deadline?: string; eta_minutes?: number;
@@ -106,6 +115,10 @@ export const api = {
   eta: (bus_id: number, travel_date: string, stop: string) =>
     request<{ bus_id: number; stop: string; eta_minutes: number; status: string; simulated: boolean }>(
       `/api/tracking/eta?bus_id=${bus_id}&travel_date=${travel_date}&stop=${stop}`, { auth: false }),
+  routes: (origin: string, destination: string, deadline?: string) =>
+    request<RouteAdvice>(
+      `/api/tracking/routes?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${deadline ? `&deadline=${encodeURIComponent(deadline)}` : ""}`,
+      { auth: false }),
   adminOverview: () => request<Record<string, unknown>>("/api/admin/overview"),
   metricsStart: (session_id: string, task: string) =>
     request<{ ok: boolean }>("/api/metrics/start", { method: "POST", body: { session_id, task } }),

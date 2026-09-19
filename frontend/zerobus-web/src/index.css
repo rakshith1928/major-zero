@@ -212,6 +212,13 @@
   .zb-fare-pill { @apply ml-auto rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-indigo-950; }
   /* Requirement Negotiator note. */
   .zb-negotiation { @apply rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-slate-800; }
+  /* Route advisor. */
+  .zb-advice-row { @apply flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left; transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+  .zb-advice-best { @apply border-amber-300 bg-amber-50/70; }
+  .zb-best-pill { @apply ml-auto rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-indigo-950; }
+  @media (hover: hover) {
+    .zb-advice-row:hover { transform: translateY(-1px); border-color: #a5b4fc; box-shadow: 0 6px 18px #1e1b4b12; }
+  }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }
