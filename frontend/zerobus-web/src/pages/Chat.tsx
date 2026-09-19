@@ -72,19 +72,20 @@ interface CaptureForm { name: string; age: string; gender: string; phone: string
 
 function BusCardView({ bus, onSelect }: { bus: BusCard; onSelect: (bus: BusCard) => void }) {
   return (
-    <div className="zb-bus-card">
-      <div className="flex items-center justify-between">
+    <div className="zb-bus-card zb-enter">
+      <div className="flex items-center justify-between gap-2">
         <span className="font-semibold text-slate-900">{bus.operator}</span>
         <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
           {bus.bus_type.replaceAll("_", " ")}
         </span>
       </div>
-      <p className="mt-2 text-lg font-bold tabular-nums text-slate-900">
-        {bus.departure} <span className="font-normal text-slate-400">to</span> {bus.arrival}
-        {bus.arrival_day_offset > 0 && <span className="text-sm font-normal text-slate-500"> (+1 day)</span>}
-      </p>
+      <div className="zb-bus-times">
+        <span className="zb-bus-time">{bus.departure}</span>
+        <span className="zb-bus-line" aria-hidden="true"><i /></span>
+        <span className="zb-bus-time">{bus.arrival}{bus.arrival_day_offset > 0 && <em className="text-sm font-normal not-italic text-slate-500"> +1</em>}</span>
+      </div>
       <div className="mt-1 flex items-center justify-between text-sm">
-        <p className="font-semibold tabular-nums text-slate-900">₹{bus.fare}</p>
+        <p className="text-xl font-bold tabular-nums text-indigo-950">₹{bus.fare}</p>
         <p className="text-slate-600 tabular-nums">{Math.floor(bus.duration_minutes / 60)}h {bus.duration_minutes % 60}m</p>
       </div>
       <div className="mt-1 flex flex-wrap gap-2 text-xs">
@@ -123,8 +124,8 @@ function WarningCard({ warning, bookingRef, buses, onResolved, onSwitchBus }: {
     ? buses.find((b) => b.id === warning.alternative_bus_id)
     : undefined;
   return (
-    <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4" role="alert">
-      <p className="text-xs font-bold uppercase tracking-wide text-amber-700">Warning: {warning.code.replaceAll("_", " ")}</p>
+    <div className="zb-warning zb-enter" role="alert">
+      <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-700"><span className="zb-warn-dot" aria-hidden="true" />Warning: {warning.code.replaceAll("_", " ")}</p>
       <p className="mt-1 text-sm text-slate-800">{warning.message}</p>
       {alt && (
         <p className="mt-2 rounded-lg bg-white/70 px-3 py-2 text-sm text-slate-700 tabular-nums">
@@ -207,6 +208,12 @@ function CaptureSteps({ capture, setCapture, sessionId, setMessages }: {
 }
 
 const STORE_KEY = "zb-chat-session";
+
+const EXAMPLE_PROMPTS = [
+  "AC sleeper from Bangalore to Chennai tomorrow",
+  "Bangalore to Hyderabad on Friday, 2 seats",
+  "Cheapest bus to Chennai before 8 in the morning",
+];
 
 function loadStored() {
   try {
@@ -395,12 +402,22 @@ export default function Chat() {
       />
       <div className="zb-chat-thread space-y-3" aria-live="polite">
         {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${m.role === "user" ? "bg-indigo-900 text-white" : "border border-slate-200 bg-white text-slate-800"}`}>
+          <div key={i} className={`zb-msg-row flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${m.role === "user" ? "rounded-br-sm bg-indigo-900 text-white" : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"}`}>
               {m.content}
             </div>
           </div>
         ))}
+        {messages.length <= 1 && buses.length === 0 && !busy && (
+          <div className="zb-prompts">
+            <p className="zb-prompts-label">Try one of these</p>
+            <div className="flex flex-wrap gap-2">
+              {EXAMPLE_PROMPTS.map((p) => (
+                <button key={p} onClick={() => send(p)} className="zb-prompt-chip">{p}</button>
+              ))}
+            </div>
+          </div>
+        )}
         {Object.keys(slots).length > 0 && (
           <div className="flex flex-wrap gap-2">
             {Object.entries(slots).filter(([, v]) => v).map(([k, v]) => (
@@ -453,8 +470,8 @@ export default function Chat() {
           />
         ))}
         {booking && booking.status === "PENDING_PAYMENT" && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm text-slate-800">Booking <strong>{booking.booking_ref}</strong> · Rs.{booking.fare} · TEST MODE, no real money.</p>
+          <div className="zb-pay-card zb-enter">
+            <p className="text-sm text-slate-800">Booking <strong>{booking.booking_ref}</strong> · <strong className="tabular-nums">Rs.{booking.fare}</strong> · TEST MODE, no real money.</p>
             <button onClick={pay} disabled={paying} className="mt-2 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-500 disabled:opacity-50">
               {paying ? "Starting checkout..." : "Pay now"}
             </button>
@@ -490,17 +507,17 @@ export default function Chat() {
         <div ref={bottomRef} />
       </div>
       <div className="zb-composer">
-        <button onClick={voiceInput} aria-label="Voice input" className="zb-action rounded-xl border border-slate-300 bg-white px-3 text-slate-700">Mic</button>
+        <button onClick={voiceInput} aria-label="Voice input" className="zb-action rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">Mic</button>
         <label htmlFor="zb-chat-input" className="sr-only">Type your message</label>
         <input
           id="zb-chat-input"
           className="zb-control min-w-0 flex-1"
-          placeholder="Type your trip..."
+          placeholder="Type your trip, e.g. AC sleeper to Chennai tomorrow..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
         />
-        <button onClick={() => send()} disabled={busy} className="zb-action rounded-xl bg-indigo-900 px-4 font-semibold text-white disabled:opacity-50">
+        <button onClick={() => send()} disabled={busy || !input.trim()} aria-label="Send message" className="zb-action rounded-xl bg-indigo-900 px-4 font-semibold text-white disabled:opacity-50">
           {busy ? "..." : "Send"}
         </button>
       </div>

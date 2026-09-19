@@ -52,23 +52,25 @@ export default function Tickets() {
       {history.length > 0 && (
         <div className="zb-panel mt-4">
           <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="ticket" />Booking history</h2>
-          <ul className="mt-2 space-y-1 text-sm">
+          <ul className="mt-3 space-y-2 text-sm">
             {history.map((h) => (
-              <li key={h.booking_ref}>
-                <button className="zb-action text-indigo-700 underline" onClick={() => { setRef(h.booking_ref); }}>
+              <li key={h.booking_ref} className="zb-history-row">
+                <button className="zb-action font-semibold tabular-nums text-indigo-800 underline underline-offset-2" onClick={() => { setRef(h.booking_ref); }}>
                   {h.booking_ref}
-                </button>{" "}
-                <span className="text-slate-600">{h.travel_date} · Rs.{h.fare} · {h.status}</span>
+                </button>
+                <span className="text-slate-600 tabular-nums">{h.travel_date} · Rs.{h.fare}</span>
+                <span className={`zb-status ${/paid|confirmed|verified/i.test(h.status) ? "zb-status-paid" : "zb-status-pending"}`}>{h.status}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
       {ticket && (
-        <div id="zb-qr" className="zb-panel mt-4">
-          <p className="break-all text-3xl font-bold tracking-widest text-slate-900">{ticket.code}</p>
+        <div id="zb-qr" className="zb-ticket zb-enter">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Boarding pass</p>
+          <p className="mt-1 break-all text-3xl font-bold tracking-widest tabular-nums text-indigo-950">{ticket.code}</p>
           <p className="mt-1 text-sm text-slate-600">Booking {ticket.booking_ref}</p>
-          <div className="mt-3 flex justify-center rounded bg-white p-3">
+          <div className="zb-ticket-qr">
             <QRCodeSVG value={ticket.qr_payload} size={200} />
           </div>
           <button
@@ -158,11 +160,11 @@ export function Verify() {
       </div>
       </div>
       {result && (
-        <div className={`mt-4 rounded-xl border p-4 ${result.valid ? "border-emerald-300 bg-emerald-50" : "border-red-300 bg-red-50"}`}>
+        <div className={`zb-verify-result zb-enter ${result.valid ? "zb-verify-valid" : "zb-verify-invalid"}`}>
           {result.valid ? (
-            <p className="text-sm text-slate-800">Valid ticket for <strong>{result.passenger_name}</strong>, travel {result.travel_date}.</p>
+            <p className="flex items-start gap-2 text-sm text-slate-800"><Icon name="shield" />Valid ticket for <strong>{result.passenger_name}</strong>, travel {result.travel_date}.</p>
           ) : (
-            <p className="text-sm text-slate-800">Invalid: {result.reason}</p>
+            <p className="flex items-start gap-2 text-sm text-slate-800"><Icon name="lock" />Invalid: {result.reason}</p>
           )}
         </div>
       )}

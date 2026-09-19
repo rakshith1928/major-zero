@@ -144,6 +144,41 @@
     .zb-corridor-card { transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
     .zb-corridor-card:hover { transform: translateY(-2px); border-color: #c7d2fe; box-shadow: 0 14px 32px #1e1b4b14; }
   }
+  /* Batch 1: chat, tickets, verify polish. */
+  @keyframes zb-pop { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
+  .zb-enter { animation: zb-pop 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .zb-msg-row > div { animation: zb-rise 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .zb-bus-times { @apply mt-2 flex items-center gap-3; }
+  .zb-bus-time { @apply text-lg font-bold tabular-nums text-slate-900; }
+  .zb-bus-line { @apply flex flex-1 items-center; }
+  .zb-bus-line i { @apply block h-0.5 w-full rounded bg-indigo-200; position: relative; }
+  .zb-bus-line i::after { content: ""; position: absolute; right: -1px; top: 50%; width: 8px; height: 8px; border-top: 2px solid #818cf8; border-right: 2px solid #818cf8; transform: translateY(-50%) rotate(45deg); }
+  .zb-bus-card.zb-enter { box-shadow: 0 2px 5px #0f172a06; }
+  @media (hover: hover) {
+    .zb-bus-card:hover { transform: translateY(-2px); }
+  }
+  .zb-prompts { @apply rounded-xl border border-dashed border-indigo-200 bg-white/70 p-4; }
+  .zb-prompts-label { @apply mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500; }
+  .zb-prompt-chip { @apply rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-left text-[13px] text-indigo-900; transition: background-color 160ms, border-color 160ms, transform 160ms; }
+  @media (hover: hover) {
+    .zb-prompt-chip:hover { background: #e0e7ff; border-color: #a5b4fc; transform: translateY(-1px); }
+  }
+  .zb-warning { @apply rounded-xl border border-amber-200 border-l-4 border-l-amber-400 bg-amber-50 p-4; box-shadow: 0 2px 8px #f59e0b14; }
+  .zb-warn-dot { @apply inline-block h-2 w-2 rounded-full bg-amber-500; }
+  .zb-pay-card { @apply rounded-xl border border-emerald-200 bg-emerald-50 p-4; box-shadow: 0 2px 8px #05966914; }
+  .zb-history-row { @apply flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3; }
+  .zb-status { @apply ml-auto rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide; }
+  .zb-status-paid { @apply bg-emerald-100 text-emerald-800; }
+  .zb-status-pending { @apply bg-amber-100 text-amber-800; }
+  .zb-ticket { @apply relative mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-center; box-shadow: 0 12px 32px #1e1b4b10; }
+  .zb-ticket-qr { @apply mx-auto mt-4 w-fit rounded-xl border border-slate-200 bg-white p-3; }
+  .zb-ticket-qr::before { content: ""; display: block; border-top: 2px dashed #cbd5e1; margin: -6px -24px 12px; }
+  .zb-verify-result { @apply mt-4 rounded-xl border p-4; }
+  .zb-verify-valid { @apply border-emerald-300 bg-emerald-50; }
+  .zb-verify-invalid { @apply border-red-300 bg-red-50; }
+  .zb-verify-result .zb-icon { @apply mt-0.5 h-4 w-4 shrink-0; }
+  .zb-verify-valid .zb-icon { @apply text-emerald-700; }
+  .zb-verify-invalid .zb-icon { @apply text-red-600; }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }
