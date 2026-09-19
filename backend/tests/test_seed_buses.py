@@ -37,6 +37,30 @@ def test_all_three_reported_bus_classes_present(session):
     assert {"AC_SLEEPER", "AC_SEMI_SLEEPER", "NON_AC_SEATER"} <= types
 
 
+def test_new_corridors_seeded_both_directions(session):
+    seed_buses(session)
+    pairs = {(b.origin, b.destination) for b in session.query(Bus).all()}
+    for pair in [
+        ("Bangalore", "Mysuru"), ("Mysuru", "Bangalore"),
+        ("Bangalore", "Coimbatore"), ("Coimbatore", "Bangalore"),
+        ("Bangalore", "Vijayawada"), ("Vijayawada", "Bangalore"),
+    ]:
+        assert pair in pairs
+    assert len(session.query(Bus).all()) == 58
+
+
+def test_new_corridor_midpoints_mapped():
+    from app.services.tracking import corridor
+
+    assert [n for n, _ in corridor("Bangalore", "Coimbatore")] == [
+        "Bangalore", "Salem", "Coimbatore",
+    ]
+    assert [n for n, _ in corridor("Bangalore", "Vijayawada")] == [
+        "Bangalore", "Anantapur", "Vijayawada",
+    ]
+    assert [n for n, _ in corridor("Bangalore", "Mysuru")] == ["Bangalore", "Mysuru"]
+
+
 def test_seeding_is_deterministic(session):
     def fresh_rows():
         engine = create_engine(

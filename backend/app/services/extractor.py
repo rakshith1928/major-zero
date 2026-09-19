@@ -35,7 +35,10 @@ _BUS_TYPES = {
 
 # Minimal known-place list keeps the stub deterministic; production Gemini
 # handles arbitrary places.
-_PLACES = ["bangalore", "bengaluru", "chennai", "hyderabad", "madras"]
+_PLACES = [
+    "bangalore", "bengaluru", "chennai", "hyderabad", "madras",
+    "mysuru", "mysore", "coimbatore", "vijayawada",
+]
 
 
 def _norm_place(raw: str) -> str:
@@ -44,6 +47,8 @@ def _norm_place(raw: str) -> str:
         return "Bangalore"
     if raw in ("madras",):
         return "Chennai"
+    if raw in ("mysore",):
+        return "Mysuru"
     return raw.title()
 
 

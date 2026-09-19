@@ -21,12 +21,20 @@ const STOPS: Record<string, [number, number]> = {
   Chennai: [13.0827, 80.2707],
   Kurnool: [15.8281, 78.0373],
   Hyderabad: [17.385, 78.4867],
+  Mysuru: [12.2958, 76.6394],
+  Salem: [11.6643, 78.146],
+  Coimbatore: [11.0168, 76.9558],
+  Anantapur: [14.6819, 77.6006],
+  Vijayawada: [16.5062, 80.648],
 };
-const CORRIDORS: [string, string, string][] = [
+const CORRIDORS: string[][] = [
   ["Bangalore", "Vellore", "Chennai"],
   ["Bangalore", "Kurnool", "Hyderabad"],
+  ["Bangalore", "Mysuru"],
+  ["Bangalore", "Salem", "Coimbatore"],
+  ["Bangalore", "Anantapur", "Vijayawada"],
 ];
-const CITIES = ["Bangalore", "Chennai", "Hyderabad"];
+const CITIES = ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada"];
 
 export default function Track() {
   const [buses, setBuses] = useState<BusPosition[]>([]);
@@ -123,7 +131,7 @@ export default function Track() {
         </label>
         <label className="min-w-0 w-full text-sm font-medium text-slate-700 sm:w-auto sm:flex-1">Boarding point
           <select className="zb-control mt-2 block min-w-0 w-full" value={stop} onChange={(e) => setStop(e.target.value)}>
-            {["Bangalore", "Chennai", "Hyderabad", "Vellore", "Kurnool"].map((s) => <option key={s}>{s}</option>)}
+            {["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada", "Vellore", "Kurnool", "Salem", "Anantapur"].map((s) => <option key={s}>{s}</option>)}
           </select>
         </label>
         <button

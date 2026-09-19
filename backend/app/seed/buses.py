@@ -16,6 +16,12 @@ ROUTES = [
     ("Chennai", "Bangalore"),
     ("Bangalore", "Hyderabad"),
     ("Hyderabad", "Bangalore"),
+    ("Bangalore", "Mysuru"),
+    ("Mysuru", "Bangalore"),
+    ("Bangalore", "Coimbatore"),
+    ("Coimbatore", "Bangalore"),
+    ("Bangalore", "Vijayawada"),
+    ("Vijayawada", "Bangalore"),
 ]
 
 PRIMARY_ROUTE = ("Bangalore", "Chennai")
@@ -63,6 +69,42 @@ _TIMETABLES = {
         ("Orange Tours", "AC_SLEEPER", "22:30", 500, 1120, 36),
         ("VRL Travels", "AC_SLEEPER", "23:45", 480, 1380, 36),
     ],
+    ("Bangalore", "Mysuru"): [
+        ("KPN Travels", "AC_SEMI_SLEEPER", "07:00", 210, 650, 40),
+        ("SETC Express", "NON_AC_SEATER", "09:30", 220, 600, 50),
+        ("SRS Travels", "AC_SEMI_SLEEPER", "14:00", 210, 680, 44),
+        ("VRL Travels", "AC_SLEEPER", "17:30", 215, 750, 36),
+    ],
+    ("Mysuru", "Bangalore"): [
+        ("SETC Express", "NON_AC_SEATER", "06:30", 220, 600, 50),
+        ("KPN Travels", "AC_SEMI_SLEEPER", "10:00", 210, 660, 40),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "15:30", 215, 700, 44),
+        ("SRS Travels", "AC_SLEEPER", "19:00", 210, 740, 36),
+    ],
+    ("Bangalore", "Coimbatore"): [
+        ("SETC Express", "NON_AC_SEATER", "06:30", 460, 700, 50),
+        ("KPN Travels", "AC_SEMI_SLEEPER", "09:00", 450, 950, 40),
+        ("SRS Travels", "AC_SLEEPER", "15:00", 445, 1150, 36),
+        ("VRL Travels", "AC_SLEEPER", "22:30", 460, 1200, 36),
+    ],
+    ("Coimbatore", "Bangalore"): [
+        ("SETC Express", "NON_AC_SEATER", "06:00", 460, 710, 50),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "10:30", 455, 940, 40),
+        ("KPN Travels", "AC_SLEEPER", "14:30", 450, 1140, 36),
+        ("SRS Travels", "AC_SLEEPER", "22:00", 465, 1190, 36),
+    ],
+    ("Bangalore", "Vijayawada"): [
+        ("SETC Express", "NON_AC_SEATER", "07:00", 730, 900, 50),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "12:00", 720, 1050, 40),
+        ("KPN Travels", "AC_SLEEPER", "18:00", 710, 1300, 36),
+        ("VRL Travels", "AC_SLEEPER", "21:30", 725, 1400, 36),
+    ],
+    ("Vijayawada", "Bangalore"): [
+        ("SETC Express", "NON_AC_SEATER", "06:30", 730, 910, 50),
+        ("SRS Travels", "AC_SEMI_SLEEPER", "11:00", 725, 1040, 40),
+        ("Orange Tours", "AC_SLEEPER", "17:30", 715, 1290, 36),
+        ("KPN Travels", "AC_SLEEPER", "21:00", 730, 1390, 36),
+    ],
 }
 
 
@@ -91,9 +133,15 @@ def _build_bus(operator, bus_type, departure, duration_minutes, base_fare, total
 
 
 def seed_buses(session: Session) -> None:
-    if session.query(Bus).count():
-        return
+    # Additive: fresh databases get all routes; live databases missing newer
+    # corridors get only those (existing bookings keep their bus rows).
+    existing = {
+        (origin, destination)
+        for origin, destination in session.query(Bus.origin, Bus.destination).distinct()
+    }
     for (origin, destination), templates in _TIMETABLES.items():
+        if (origin, destination) in existing:
+            continue
         for operator, bus_type, departure, duration, fare, seats in templates:
             bus = _build_bus(operator, bus_type, departure, duration, fare, seats)
             bus.origin = origin
