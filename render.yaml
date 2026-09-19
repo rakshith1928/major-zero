@@ -19,13 +19,10 @@ services:
       - key: DATABASE_URL
         sync: false # paste Supabase postgresql+psycopg2 URL in Render dashboard
       - key: JWT_SECRET
-        sync: false
         generateValue: true
       - key: FERNET_MASTER
-        sync: false
         generateValue: true
       - key: TICKET_SECRET
-        sync: false
         generateValue: true
       - key: CORS_ORIGINS
         sync: false # set after Firebase URL known, e.g. https://velvety-citizen-491119-b1.web.app
