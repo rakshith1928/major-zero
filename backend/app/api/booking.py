@@ -1,7 +1,8 @@
 """T03 — conversational booking: search, chat, select (state machine)."""
 
 import json
-from datetime import date, datetime
+import re
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -24,6 +25,30 @@ from app.services.passenger_ref import classify_passenger_ref
 router = APIRouter(prefix="/api/booking", tags=["booking"])
 
 REQUIRED_SLOTS = ["origin", "destination", "travel_date"]
+
+_REPEAT_REQUEST = re.compile(
+    r"\bsame as last\b|\bbook .*again\b|\brepeat\b|\bsame trip\b|\busual\b",
+    re.IGNORECASE,
+)
+
+
+def _is_repeat_request(message: str) -> bool:
+    return _REPEAT_REQUEST.search(message or "") is not None
+
+
+def _frequent_route(db: Session, user_id: int) -> tuple[str, str] | None:
+    """Most-booked (origin, destination) for the user, real bookings only."""
+    row = (
+        db.query(Bus.origin, Bus.destination, func.count().label("trips"))
+        .join(Booking, Booking.bus_id == Bus.id)
+        .filter(Booking.user_id == user_id, Booking.is_synthetic.is_(False))
+        .group_by(Bus.origin, Bus.destination)
+        .order_by(func.count().desc())
+        .first()
+    )
+    if row is None:
+        return None
+    return (row[0], row[1])
 
 
 class SearchRequest(BaseModel):
@@ -139,6 +164,19 @@ def search(req: SearchRequest, user: User = Depends(get_current_user), db: Sessi
 def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     state = _session_state(db, user.id, req.session_id)
     slots = get_extractor().extract(req.message, state.get("slots", {}))
+    # Trip Guardian MVP — "same as last time": refill the traveller's most
+    # frequent route when they name no places. Explicit places always win,
+    # and first-timers fall through to the normal missing-slot questions.
+    if (
+        _is_repeat_request(req.message)
+        and not slots.get("origin")
+        and not slots.get("destination")
+    ):
+        route = _frequent_route(db, user.id)
+        if route is not None:
+            slots["origin"], slots["destination"] = route
+            if not slots.get("travel_date"):
+                slots["travel_date"] = (date.today() + timedelta(days=1)).isoformat()
     # T04: the classifier is authoritative for WHO the ticket is for, but an
     # explicit earlier signal wins (e.g. deadline follow-ups must not reset it).
     try:

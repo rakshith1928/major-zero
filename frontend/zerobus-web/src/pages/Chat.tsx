@@ -213,6 +213,7 @@ const EXAMPLE_PROMPTS = [
   "AC sleeper from Bangalore to Chennai tomorrow",
   "Bangalore to Hyderabad on Friday, 2 seats",
   "Cheapest bus to Chennai before 8 in the morning",
+  "Same as last time",
 ];
 
 function loadStored() {

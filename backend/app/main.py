@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, analytics, auth, booking, metrics, notifications, passkeys, passengers, payments, tickets, tracking, warnings
+from app.api import admin, analytics, auth, booking, guardian, metrics, notifications, passkeys, passengers, payments, tickets, tracking, warnings
 from app.config import settings
 from app.services import passenger_ref
 
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(passkeys.router)
 app.include_router(booking.router)
+app.include_router(guardian.router)
 app.include_router(payments.router)
 app.include_router(tickets.router)
 app.include_router(passengers.router)

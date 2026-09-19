@@ -25,6 +25,26 @@ _MIDPOINT = {
     ("Hyderabad", "Bangalore"): "Kurnool",
 }
 
+# Trip Guardian demo: per-bus delay overrides (minutes) held in memory.
+# Single-worker deployments only; cleared on restart. The public API keeps
+# reporting simulated=True, and overrides exist solely to stage delay
+# scenarios for demos and tests — never real GPS data.
+_DELAY_OVERRIDES: dict[int, int] = {}
+
+
+def set_delay(bus_id: int, minutes: int) -> None:
+    """Stage a simulated delay for one bus. Non-positive values are ignored."""
+    if minutes > 0:
+        _DELAY_OVERRIDES[int(bus_id)] = int(minutes)
+
+
+def clear_delay(bus_id: int) -> None:
+    _DELAY_OVERRIDES.pop(int(bus_id), None)
+
+
+def delay_for(bus_id: int) -> int:
+    return _DELAY_OVERRIDES.get(int(bus_id), 0)
+
 
 def corridor(origin: str, destination: str) -> list[tuple[str, tuple[float, float]]]:
     mid = _MIDPOINT.get((origin, destination))
@@ -52,7 +72,7 @@ def position_for(bus, travel: date, now: datetime | None = None) -> dict:
     idx = min(int(scaled), segments - 1)
     frac = scaled - idx
     lat, lon = _lerp(points[idx][1], points[idx + 1][1], frac)
-    remaining_minutes = max(0, int((total - elapsed) // 60))
+    remaining_minutes = max(0, int((total - elapsed) // 60)) + delay_for(bus.id)
     return {
         "bus_id": bus.id,
         "lat": round(lat, 4),
@@ -72,7 +92,7 @@ def eta_to_stop(bus, travel: date, stop: str, now: datetime | None = None) -> di
         stop = bus.origin
     stop_fraction = names.index(stop) / max(1, len(names) - 1)
     remaining_fraction = max(0.0, stop_fraction - pos["progress"])
-    eta_minutes = int(remaining_fraction * bus.duration_minutes)
+    eta_minutes = int(remaining_fraction * bus.duration_minutes) + delay_for(bus.id)
     return {
         "bus_id": bus.id,
         "stop": stop,

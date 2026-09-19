@@ -198,6 +198,12 @@
   .zb-or { @apply my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400; }
   .zb-or::before, .zb-or::after { content: ""; @apply h-px flex-1 bg-slate-200; }
   .zb-form-error { @apply rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700; }
+  /* Trip Guardian MVP. */
+  .zb-guardian { @apply rounded-2xl border bg-white p-5; box-shadow: 0 2px 8px #0f172a08; }
+  .zb-guardian-ok { @apply border-emerald-200; }
+  .zb-guardian-risk { @apply border-amber-300 bg-amber-50/60; box-shadow: 0 2px 12px #f59e0b22; }
+  .zb-guardian .zb-icon { @apply h-4 w-4 shrink-0 text-indigo-800; }
+  .zb-guardian-risk .zb-icon { @apply text-amber-700; }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }

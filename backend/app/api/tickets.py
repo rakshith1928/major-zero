@@ -76,6 +76,10 @@ def booking_history(user: User = Depends(get_current_user), db: Session = Depend
                 "status": b.status,
                 "travel_date": b.travel_date.isoformat(),
                 "fare": b.fare,
+                "bus_id": b.bus_id,
+                "origin": b.bus.origin,
+                "destination": b.bus.destination,
+                "deadline_time": b.deadline_time.strftime("%H:%M") if b.deadline_time else None,
             }
             for b in rows
         ]

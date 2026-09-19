@@ -2,11 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
-import { api, type Ticket, type VerifyResult } from "../api";
+import { api, type GuardianStatus, type HistoryEntry, type Ticket, type VerifyResult } from "../api";
 import { useAuth } from "../auth";
 import { Icon, PageHeader, SignInPrompt } from "../components/UI";
-
-interface HistoryEntry { booking_ref: string; status: string; travel_date: string; fare: number }
 
 export default function Tickets() {
   const { user } = useAuth();
@@ -65,6 +63,13 @@ export default function Tickets() {
           </ul>
         </div>
       )}
+      {history.some((h) => h.deadline_time && h.status !== "SUPERSEDED") && (
+        <section aria-label="Trip Guardian" className="mt-4 space-y-3">
+          {history.filter((h) => h.deadline_time && h.status !== "SUPERSEDED").map((h) => (
+            <GuardianPanel key={h.booking_ref} entry={h} />
+          ))}
+        </section>
+      )}
       {ticket && (
         <div id="zb-qr" className="zb-ticket zb-enter">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Boarding pass</p>
@@ -90,6 +95,89 @@ export default function Tickets() {
           <p className="mt-2 text-xs text-slate-500">Show this QR to the conductor for scanning.</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function GuardianPanel({ entry }: { entry: HistoryEntry }) {
+  const [status, setStatus] = useState<GuardianStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [rebooked, setRebooked] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+
+  async function refresh() {
+    try {
+      setStatus(await api.guardianCheck(entry.booking_ref));
+    } catch {
+      /* offline: keep last state */
+    }
+  }
+
+  useEffect(() => {
+    let alive = true;
+    api.guardianCheck(entry.booking_ref).then((s) => { if (alive) setStatus(s); }).catch(() => {});
+    return () => { alive = false; };
+  }, [entry.booking_ref]);
+
+  async function rebook() {
+    if (!status?.alternative_bus_id || busy) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const res = await api.guardianRebook(entry.booking_ref, status.alternative_bus_id);
+      setRebooked(res.booking_ref);
+      await refresh();
+    } catch (err) {
+      setNotice(`Rebook failed: ${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function demoDelay() {
+    setNotice("");
+    try {
+      await api.guardianSimulateDelay(entry.bus_id, 60);
+      await refresh();
+    } catch (err) {
+      setNotice(`Demo trigger failed: ${(err as Error).message}`);
+    }
+  }
+
+  return (
+    <div className={`zb-guardian zb-enter ${status?.status === "AT_RISK" ? "zb-guardian-risk" : "zb-guardian-ok"}`}>
+      <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+        <Icon name="shield" />Trip Guardian · {entry.booking_ref}
+      </p>
+      {!status && <p className="mt-1 text-sm text-slate-600">Watching your {entry.deadline_time} deadline…</p>}
+      {status?.status === "OK" && (
+        <p className="mt-1 text-sm text-slate-600">
+          On track — predicted arrival {status.predicted_arrival?.slice(11, 16)}, deadline {status.deadline?.slice(11, 16)}.
+        </p>
+      )}
+      {status?.status === "AT_RISK" && (
+        <>
+          <p className="mt-1 text-sm text-slate-800">
+            Running late — predicted arrival {status.predicted_arrival?.slice(11, 16)} is past your {status.deadline?.slice(11, 16)} deadline.
+          </p>
+          {status.alternative_bus_id ? (
+            <button onClick={rebook} disabled={busy} className="zb-action mt-2 rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-indigo-950 hover:bg-amber-300 disabled:opacity-50">
+              {busy ? "Rebooking…" : "Rebook on an earlier bus"}
+            </button>
+          ) : (
+            <p className="mt-1 text-sm text-slate-600">No earlier bus clears your deadline — consider another date.</p>
+          )}
+        </>
+      )}
+      {rebooked && (
+        <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          Rebooked as {rebooked} (pending payment). Find it above to complete payment.
+        </p>
+      )}
+      {notice && <p className="mt-2 text-sm text-red-600">{notice}</p>}
+      <button onClick={demoDelay} className="zb-action mt-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white">
+        Demo: simulate a 60-min delay
+      </button>
     </div>
   );
 }

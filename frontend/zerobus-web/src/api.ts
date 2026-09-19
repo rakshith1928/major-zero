@@ -46,6 +46,15 @@ export interface BookingCreated {
 }
 export interface Warning { code: string; message: string; alternative_bus_id?: number }
 export interface Ticket { code: string; qr_payload: string; booking_ref: string }
+export interface HistoryEntry {
+  booking_ref: string; status: string; travel_date: string; fare: number;
+  bus_id: number; origin: string; destination: string; deadline_time: string | null;
+}
+export interface GuardianStatus {
+  booking_ref: string; status: "OK" | "AT_RISK" | "NO_DEADLINE";
+  predicted_arrival?: string; deadline?: string; eta_minutes?: number;
+  alternative_bus_id?: number | null;
+}
 export interface VerifyResult { valid: boolean; reason?: string; booking_ref?: string; travel_date?: string; passenger_name?: string }
 export interface SavedPassenger { id: number; label: string; name: string; age: number; gender: string; phone: string }
 
@@ -77,7 +86,7 @@ export const api = {
   verifyPayment: (payload: Record<string, unknown>) =>
     request<{ status: string; booking_ref: string }>("/api/payments/verify", { method: "POST", body: payload }),
   ticket: (booking_ref: string) => request<Ticket>(`/api/tickets/${booking_ref}`),
-  history: () => request<{ bookings: { booking_ref: string; status: string; travel_date: string; fare: number }[] }>(`/api/tickets/history/list`),
+  history: () => request<{ bookings: HistoryEntry[] }>(`/api/tickets/history/list`),
   lookupByPayload: (qr_payload: string) => request<{ code: string; booking_ref: string }>(`/api/tickets/lookup`, { method: "POST", body: { qr_payload } }),
   verifyTicket: (code: string) => request<VerifyResult>("/api/tickets/verify", { method: "POST", body: { code } }),
   notifications: () =>
@@ -103,4 +112,10 @@ export const api = {
     request<{ publicKey: unknown; challenge_token: string }>("/api/auth/passkeys/login/options", { method: "POST", body: { email }, auth: false }),
   passkeyLogin: (payload: Record<string, unknown>) =>
     request<TokenResponse>("/api/auth/passkeys/login", { method: "POST", body: payload, auth: false }),
+  guardianCheck: (booking_ref: string) =>
+    request<GuardianStatus>("/api/guardian/check", { method: "POST", body: { booking_ref } }),
+  guardianRebook: (booking_ref: string, bus_id: number) =>
+    request<{ booking_ref: string; status: string; supersedes: string; fare: number }>("/api/guardian/rebook", { method: "POST", body: { booking_ref, bus_id } }),
+  guardianSimulateDelay: (bus_id: number, minutes: number) =>
+    request<{ bus_id: number; delay_minutes: number }>("/api/guardian/simulate-delay", { method: "POST", body: { bus_id, minutes } }),
 };
