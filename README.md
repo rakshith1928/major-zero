@@ -13,9 +13,6 @@ Supabase Postgres, local Hugging Face classifier + OpenRouter free-tier LLM extr
 | | URL |
 |---|---|
 | App (Firebase Hosting) | <https://college-project-c6b6a.web.app> |
-| API (Render) | <https://zerobus-api.onrender.com> (`/health` → `{"status":"ok"}`) |
-
-Render free tier cold-starts (~50s on first request); the UI retries automatically.
 
 ## Screens
 
