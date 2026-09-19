@@ -65,6 +65,22 @@ class StubSlotExtractor:
             if place in _PLACES or " " not in place:
                 slots["destination"] = _norm_place(place)
 
+        # "Bangalore to Chennai" without leading "from" — take known place before "to".
+        if "origin" not in slots and "destination" in slots:
+            before_to = text.split("to", 1)[0]
+            for known in _PLACES:
+                if re.search(rf"\b{re.escape(known)}\b", before_to):
+                    slots["origin"] = _norm_place(known)
+                    break
+
+        # Bare reply to "Where are you travelling from?" / "Where to?" — e.g. just "Bangalore".
+        stripped = text.strip()
+        if stripped in _PLACES:
+            if "origin" not in slots:
+                slots["origin"] = _norm_place(stripped)
+            elif "destination" not in slots:
+                slots["destination"] = _norm_place(stripped)
+
         for word, offset in _DATE_WORDS.items():
             if word in text:
                 slots["travel_date"] = (
