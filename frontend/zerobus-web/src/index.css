@@ -245,6 +245,19 @@
   .zb-roadband { @apply relative mt-10 overflow-hidden rounded-2xl bg-indigo-950 px-6 py-4; }
   .zb-roadband .zb-roadline { position: absolute; left: 0; right: 0; bottom: 14px; border-top: 3px dashed #4f46e533; }
   .zb-road { @apply my-2 border-0; border-top: 3px dashed #c7d2fe; opacity: 0.8; }
+  /* Tickets: countdown, print. Verify: recent list. */
+  .zb-countdown { @apply rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-800; }
+  .zb-verify-big p { @apply text-base; }
+  .zb-verify-big .zb-icon { @apply mt-1 h-6 w-6; }
+  .zb-dot { @apply inline-block h-2.5 w-2.5 shrink-0 rounded-full; }
+  .zb-dot-ok { @apply bg-emerald-500; }
+  .zb-dot-bad { @apply bg-red-500; }
+  @media print {
+    body * { visibility: hidden; }
+    #zb-qr, #zb-qr * { visibility: visible; }
+    #zb-qr { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+    #zb-qr button { display: none !important; }
+  }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }

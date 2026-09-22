@@ -18,6 +18,33 @@ export default function Tickets() {
     api.history().then((b) => { setHistory(b.bookings); setHistoryLoaded(true); }).catch(() => {});
   }, []);
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcoming = history.filter((h) => h.travel_date >= todayStr && h.status !== "SUPERSEDED");
+  const past = history.filter((h) => !(h.travel_date >= todayStr && h.status !== "SUPERSEDED"));
+
+  function countdown(iso: string): string {
+    const days = Math.round(
+      (new Date(`${iso}T00:00:00`).getTime() - new Date(`${todayStr}T00:00:00`).getTime()) / 86_400_000,
+    );
+    if (days <= 0) return "leaves today";
+    if (days === 1) return "leaves tomorrow";
+    return `leaves in ${days} days`;
+  }
+
+  function historyRow(h: HistoryEntry, showCountdown: boolean) {
+    return (
+      <li key={h.booking_ref} className="zb-history-row">
+        <button className="zb-action font-semibold tabular-nums text-indigo-800 underline underline-offset-2" onClick={() => { setRef(h.booking_ref); }}>
+          {h.booking_ref}
+        </button>
+        <span className="text-slate-800">{h.origin} → {h.destination}</span>
+        <span className="text-slate-600 tabular-nums">{h.travel_date} · Rs.{h.fare}</span>
+        {showCountdown && <span className="zb-countdown">{countdown(h.travel_date)}</span>}
+        <span className={`zb-status ${/paid|confirmed|verified/i.test(h.status) ? "zb-status-paid" : "zb-status-pending"}`}>{h.status}</span>
+      </li>
+    );
+  }
+
   async function load() {
     setError("");
     try {
@@ -49,19 +76,19 @@ export default function Tickets() {
           <Link to="/chat" className="zb-button zb-button-primary mt-4 inline-flex">Plan a trip</Link>
         </div>
       )}
-      {history.length > 0 && (
+      {upcoming.length > 0 && (
         <div className="zb-panel mt-4">
-          <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="ticket" />Booking history</h2>
+          <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="ticket" />Upcoming trips</h2>
           <ul className="mt-3 space-y-2 text-sm">
-            {history.map((h) => (
-              <li key={h.booking_ref} className="zb-history-row">
-                <button className="zb-action font-semibold tabular-nums text-indigo-800 underline underline-offset-2" onClick={() => { setRef(h.booking_ref); }}>
-                  {h.booking_ref}
-                </button>
-                <span className="text-slate-600 tabular-nums">{h.travel_date} · Rs.{h.fare}</span>
-                <span className={`zb-status ${/paid|confirmed|verified/i.test(h.status) ? "zb-status-paid" : "zb-status-pending"}`}>{h.status}</span>
-              </li>
-            ))}
+            {upcoming.map((h) => historyRow(h, true))}
+          </ul>
+        </div>
+      )}
+      {past.length > 0 && (
+        <div className="zb-panel mt-4">
+          <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="ticket" />Past trips</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            {past.map((h) => historyRow(h, false))}
           </ul>
         </div>
       )}
@@ -93,6 +120,12 @@ export default function Tickets() {
             className="zb-action mt-2 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700"
           >
             Download QR
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="zb-action mt-2 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700"
+          >
+            Print ticket
           </button>
           <p className="mt-2 text-xs text-slate-500">Show this QR to the conductor for scanning.</p>
         </div>
@@ -184,15 +217,48 @@ function GuardianPanel({ entry }: { entry: HistoryEntry }) {
   );
 }
 
+interface RecentCheck { code: string; valid: boolean; at: string }
+
+function loadRecent(): RecentCheck[] {
+  try {
+    const raw = localStorage.getItem("zb-verify-recent");
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function Verify() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
+  const [recent, setRecent] = useState<RecentCheck[]>(loadRecent);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  function record(codeUsed: string, valid: boolean) {
+    setRecent((prev) => {
+      const next = [{ code: codeUsed, valid, at: new Date().toISOString() }, ...prev.filter((r) => r.code !== codeUsed)].slice(0, 8);
+      try {
+        localStorage.setItem("zb-verify-recent", JSON.stringify(next));
+      } catch { /* storage full: list just won't persist */ }
+      return next;
+    });
+    inputRef.current?.focus();
+  }
 
   async function check(override?: string) {
-    setResult(await api.verifyTicket((override ?? code).trim()));
+    const trimmed = (override ?? code).trim();
+    if (!trimmed) return;
+    try {
+      const res = await api.verifyTicket(trimmed);
+      setResult(res);
+      record(trimmed, res.valid);
+    } catch (err) {
+      setResult({ valid: false, reason: String((err as Error).message) });
+    }
   }
 
   useEffect(() => {
@@ -221,7 +287,9 @@ export function Verify() {
           try {
             const found = await api.lookupByPayload(decoded);
             setCode(found.code);
-            setResult(await api.verifyTicket(found.code));
+            const res = await api.verifyTicket(found.code);
+            setResult(res);
+            record(found.code, res.valid);
           } catch {
             setScanError("QR scanned but ticket not found. Type the printed code instead.");
           }
@@ -245,17 +313,36 @@ export function Verify() {
       {scanError && <p className="mt-2 text-sm text-amber-700">{scanError}</p>}
       <div className="mt-4 flex gap-2">
         <label htmlFor="zb-verify-code" className="sr-only">Ticket code</label>
-        <input id="zb-verify-code" className="zb-control min-w-0 flex-1 uppercase" placeholder="Ticket code" value={code} onChange={(e) => setCode(e.target.value)} />
+        <input ref={inputRef} id="zb-verify-code" className="zb-control min-w-0 flex-1 uppercase" placeholder="Ticket code" value={code} onChange={(e) => setCode(e.target.value)} />
         <button onClick={() => check()} className="zb-action shrink-0 rounded-lg bg-indigo-900 px-4 py-2 font-semibold text-white">Verify</button>
       </div>
       </div>
       {result && (
-        <div className={`zb-verify-result zb-enter ${result.valid ? "zb-verify-valid" : "zb-verify-invalid"}`}>
+        <div className={`zb-verify-result zb-verify-big zb-enter ${result.valid ? "zb-verify-valid" : "zb-verify-invalid"}`} aria-live="polite">
           {result.valid ? (
-            <p className="flex items-start gap-2 text-sm text-slate-800"><Icon name="shield" />Valid ticket for <strong>{result.passenger_name}</strong>, travel {result.travel_date}.</p>
+            <p className="flex items-start gap-2 text-slate-800"><Icon name="shield" /><span><strong className="block text-lg">Valid ticket</strong>for <strong>{result.passenger_name}</strong>, travel {result.travel_date}.</span></p>
           ) : (
-            <p className="flex items-start gap-2 text-sm text-slate-800"><Icon name="lock" />Invalid: {result.reason}</p>
+            <p className="flex items-start gap-2 text-slate-800"><Icon name="lock" /><span><strong className="block text-lg">Not valid</strong>{result.reason}</span></p>
           )}
+        </div>
+      )}
+      {recent.length > 0 && (
+        <div className="zb-panel mt-4">
+          <h2 className="font-semibold text-slate-900">Recently checked</h2>
+          <ul className="mt-2 space-y-1.5">
+            {recent.map((r) => (
+              <li key={`${r.code}-${r.at}`}>
+                <button
+                  onClick={() => { setCode(r.code); void check(r.code); }}
+                  className="zb-action flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm hover:bg-white"
+                >
+                  <span className={`zb-dot ${r.valid ? "zb-dot-ok" : "zb-dot-bad"}`} aria-hidden="true" />
+                  <span className="font-semibold tabular-nums">{r.code}</span>
+                  <span className="ml-auto text-xs text-slate-500">{r.valid ? "valid" : "invalid"}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
