@@ -37,3 +37,10 @@ def test_openrouter_extractor_without_key_uses_stub_only():
 def test_openrouter_default_model_is_free_router():
     ex = extractor.OpenRouterSlotExtractor(api_key="test-key")
     assert ex.model == "openrouter/free"
+
+
+def test_openrouter_default_timeout_is_chat_friendly():
+    # A chat turn must never hang on the LLM: worst case it waits a few
+    # seconds, then the stub answers.
+    ex = extractor.OpenRouterSlotExtractor(api_key="test-key")
+    assert ex.timeout <= 5

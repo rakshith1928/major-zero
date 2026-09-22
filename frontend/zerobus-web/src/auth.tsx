@@ -21,7 +21,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    api.me().then(setUser).catch(() => localStorage.removeItem("zb_token")).finally(() => setLoading(false));
+    // A dead backend (cold start, offline) must not nuke a good token:
+    // only 401/403 means the token itself is bad.
+    api.me().then(setUser).catch((err: unknown) => {
+      if (/^40[13]\b/.test((err as Error).message || "")) {
+        localStorage.removeItem("zb_token");
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   const value: AuthValue = {

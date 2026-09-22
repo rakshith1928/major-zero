@@ -15,11 +15,22 @@ async function request<T>(path: string, { method = "GET", body, auth = true }: R
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (auth) Object.assign(headers, authHeaders());
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  // Render free cold-starts can stall; never hang the UI forever.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 60_000);
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: ctrl.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    throw new Error(err instanceof DOMException && err.name === "AbortError" ? "Request timed out — the server may be waking up. Please retry." : (err as Error).message);
+  }
+  clearTimeout(timer);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`${res.status}: ${text.slice(0, 200)}`);

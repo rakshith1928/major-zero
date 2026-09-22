@@ -40,6 +40,23 @@ def test_summarize_falls_back_to_template_without_key():
     _ = date_cls
 
 
+def test_summarize_falls_back_when_llm_times_out(monkeypatch):
+    import httpx
+
+    from app.services import fare_advice
+
+    def slow(*args, **kwargs):
+        raise httpx.TimeoutException("server took too long")
+
+    monkeypatch.setattr(httpx, "post", slow)
+    options = [
+        {"date": "2026-09-25", "min_fare": 780, "buses": 10},
+        {"date": "2026-09-24", "min_fare": 1150, "buses": 10},
+    ]
+    text = fare_advice.summarize(options, api_key="sk-or-test")
+    assert "2026-09-25" in text and "780" in text
+
+
 def test_chat_compare_intent_returns_fare_advice(client, session):
     from app.seed.buses import seed_buses
 

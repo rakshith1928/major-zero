@@ -102,10 +102,16 @@ def summarize(options: list[dict], api_key: str = "", model: str = "openrouter/f
 
         resp = httpx.post(
             "https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://college-project-c6b6a.web.app",
+                "X-Title": "ZeroBus",
+            },
             json={
                 "model": model,
                 "temperature": 0,
+                "max_tokens": 150,
                 "messages": [
                     {
                         "role": "system",
@@ -114,7 +120,7 @@ def summarize(options: list[dict], api_key: str = "", model: str = "openrouter/f
                     {"role": "user", "content": f"Fare options: {options}. {fallback}"},
                 ],
             },
-            timeout=6,
+            timeout=4,
         )
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"]

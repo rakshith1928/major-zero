@@ -36,17 +36,24 @@ _BUS_TYPES = {
 # Minimal known-place list keeps the stub deterministic; production Gemini
 # handles arbitrary places.
 _PLACES = [
-    "bangalore", "bengaluru", "chennai", "hyderabad", "madras",
-    "mysuru", "mysore", "coimbatore", "vijayawada",
+    "bangalore", "bengaluru", "blr", "chennai", "madras", "maa",
+    "hyderabad", "hyd", "mysuru", "mysore", "coimbatore", "vijayawada",
 ]
+
+_WEEKDAYS = {
+    "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+    "friday": 4, "saturday": 5, "sunday": 6,
+}
 
 
 def _norm_place(raw: str) -> str:
     raw = raw.strip().lower()
-    if raw in ("bengaluru",):
+    if raw in ("bengaluru", "blr"):
         return "Bangalore"
-    if raw in ("madras",):
+    if raw in ("madras", "maa"):
         return "Chennai"
+    if raw in ("hyd",):
+        return "Hyderabad"
     if raw in ("mysore",):
         return "Mysuru"
     return raw.title()
@@ -103,6 +110,23 @@ class StubSlotExtractor:
             except ValueError:
                 pass  # impossible date like 31/02: ask the user instead
 
+        # Weekday names, "next week", "weekend" — explicit dates above win.
+        if "travel_date" not in slots:
+            for name, weekday in _WEEKDAYS.items():
+                if re.search(rf"\b{name}\b", text):
+                    delta = (weekday - date.today().weekday()) % 7
+                    slots["travel_date"] = (
+                        date.today() + timedelta(days=delta or 7)
+                    ).isoformat()
+                    break
+        if "travel_date" not in slots and re.search(r"\bnext week\b", text):
+            slots["travel_date"] = (date.today() + timedelta(days=7)).isoformat()
+        if "travel_date" not in slots and re.search(r"\bweekend\b", text):
+            delta = (5 - date.today().weekday()) % 7
+            slots["travel_date"] = (
+                date.today() + timedelta(days=delta or 7)
+            ).isoformat()
+
         for phrase, bus_type in _BUS_TYPES.items():
             if phrase in text:
                 slots["bus_type"] = bus_type
@@ -147,7 +171,7 @@ class OpenRouterSlotExtractor:
 
     _ALLOWED = ("origin", "destination", "travel_date", "bus_type", "budget", "deadline_time")
 
-    def __init__(self, api_key: str = "", model: str = "openrouter/free", http_post=None, timeout: int = 8):
+    def __init__(self, api_key: str = "", model: str = "openrouter/free", http_post=None, timeout: int = 4):
         self.api_key = api_key or ""
         self.model = model
         self.http_post = http_post
@@ -190,6 +214,7 @@ class OpenRouterSlotExtractor:
         )
         payload = {
             "model": self.model,
+            "max_tokens": 200,
             "messages": [
                 {"role": "system", "content": system},
                 {
@@ -202,6 +227,8 @@ class OpenRouterSlotExtractor:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "HTTP-Referer": "https://college-project-c6b6a.web.app",
+            "X-Title": "ZeroBus",
         }
         with httpx.Client(timeout=self.timeout) as client:
             resp = client.post(
