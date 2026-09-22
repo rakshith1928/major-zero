@@ -5,7 +5,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { api } from "../api";
-import { BusArt } from "../components/BusArt";
 import { useAuth } from "../auth";
 import { Icon, PageHeader, SignInPrompt, type IconName } from "../components/UI";
 
@@ -41,7 +40,7 @@ export default function Dashboard() {
   if (!user) return <SignInPrompt icon="chart" title="Your operations overview" description="Log in with an administrator account to view bookings, warning outcomes, and route demand." />;
   if (!user.is_admin) return <Navigate to="/login" replace />;
   if (error) return <div className="zb-page-narrow"><p className="zb-form-error mt-10" role="alert">Admin only: {error}</p></div>;
-  if (!data) return <div className="zb-page"><div className="zb-panel mt-6 flex items-center gap-4 text-sm text-slate-600" aria-live="polite"><BusArt width={88} />Loading dashboard...</div></div>;
+  if (!data) return <div className="zb-page"><div className="zb-panel mt-6 text-sm text-slate-600" aria-live="polite">Loading dashboard...</div></div>;
 
   const statIcon = (key: string): IconName => {
     if (/book|ticket/.test(key)) return "ticket";
@@ -62,7 +61,7 @@ export default function Dashboard() {
 
   return (
     <div className="zb-page">
-      <PageHeader icon="chart" eyebrow="Operations workspace" title="Admin dashboard" art description="An overview of bookings, passenger safety signals, and demand across your routes." />
+      <PageHeader icon="chart" eyebrow="Operations workspace" title="Admin dashboard" description="An overview of bookings, passenger safety signals, and demand across your routes." />
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {Object.entries(data.totals).map(([k, v]) => (
           <div key={k} className="zb-panel zb-stat min-w-0">

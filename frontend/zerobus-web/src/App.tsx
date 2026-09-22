@@ -34,6 +34,12 @@ function Nav() {
   );
 }
 
+function ChatRoute() {
+  // Remount per account: one login can never see another's thread.
+  const { user } = useAuth();
+  return <Chat key={user?.id ?? "guest"} />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -46,7 +52,7 @@ export default function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/chat" element={<Chat />} />
+              <Route path="/chat" element={<ChatRoute />} />
               <Route path="/tickets" element={<Tickets />} />
               <Route path="/verify" element={<Verify />} />
               <Route path="/track" element={<Track />} />

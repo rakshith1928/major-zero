@@ -4,7 +4,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
 import { api, type GuardianStatus, type HistoryEntry, type Ticket, type VerifyResult } from "../api";
 import { useAuth } from "../auth";
-import { BusArt } from "../components/BusArt";
 import { Icon, PageHeader, SignInPrompt } from "../components/UI";
 
 export default function Tickets() {
@@ -58,7 +57,7 @@ export default function Tickets() {
 
   return (
     <div className="zb-page zb-page-narrow">
-      <PageHeader icon="ticket" eyebrow="Ready to board" title="Your ticket" art description="Find a booking, open your ticket, and show your QR when you board." />
+      <PageHeader icon="ticket" eyebrow="Ready to board" title="Your ticket" description="Find a booking, open your ticket, and show your QR when you board." />
       <div className="zb-panel mt-6">
       <h2 className="text-sm font-semibold text-slate-900">Find your booking</h2>
       <div className="mt-3 flex gap-2">
@@ -70,8 +69,7 @@ export default function Tickets() {
       </div>
       {historyLoaded && history.length === 0 && (
         <div className="zb-panel mt-4 text-center">
-          <BusArt width={120} parked className="mx-auto" />
-          <h2 className="mt-2 flex items-center justify-center gap-2 font-semibold text-slate-900"><Icon name="ticket" />No bookings yet</h2>
+          <h2 className="flex items-center justify-center gap-2 font-semibold text-slate-900"><Icon name="ticket" />No bookings yet</h2>
           <p className="mt-2 text-sm text-slate-600">Book your first trip and your tickets will collect here.</p>
           <Link to="/chat" className="zb-button zb-button-primary mt-4 inline-flex">Plan a trip</Link>
         </div>

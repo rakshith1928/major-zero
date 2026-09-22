@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
-import { BusArt } from "./BusArt";
 
 export type IconName = "chat" | "pin" | "ticket" | "shield" | "chart" | "user" | "arrow" | "spark" | "lock";
 const paths: Record<IconName, ReactNode> = {
@@ -20,8 +19,8 @@ export function Icon({ name, className = "" }: { name: IconName; className?: str
 export function Brand() {
   return <Link to="/" className="zb-brand" aria-label="ZeroBus home"><img src="/favicon.svg" alt="" width="38" height="38" /><span>Zero<span className="font-normal">Bus</span><span className="zb-brand-dot">.</span></span></Link>;
 }
-export function PageHeader({ icon, eyebrow, title, description, badge, art = false }: { icon: IconName; eyebrow: string; title: string; description: string; badge?: string; art?: boolean }) {
-  return <header className="zb-page-header"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><div className="zb-eyebrow"><Icon name={icon} />{eyebrow}</div><div className="mt-3 flex flex-wrap items-center gap-3"><h1>{title}</h1>{badge && <span className="zb-badge">{badge}</span>}</div><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">{description}</p></div>{art && <BusArt width={104} className="zb-drive-in hidden shrink-0 sm:block" />}</div></header>;
+export function PageHeader({ icon, eyebrow, title, description, badge }: { icon: IconName; eyebrow: string; title: string; description: string; badge?: string }) {
+  return <header className="zb-page-header"><div className="zb-eyebrow"><Icon name={icon} />{eyebrow}</div><div className="mt-3 flex flex-wrap items-center gap-3"><h1>{title}</h1>{badge && <span className="zb-badge">{badge}</span>}</div><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">{description}</p></header>;
 }
 export function SignInPrompt({ title, description, icon = "lock" }: { title: string; description: string; icon?: IconName }) {
   return <section className="zb-gate"><span className="zb-icon-tile"><Icon name={icon} /></span><p className="zb-eyebrow mt-6 justify-center">Your journey, simplified</p><h1 className="mt-3 text-3xl font-bold tracking-tight text-indigo-950">{title}</h1><p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-slate-600">{description}</p><Link to="/login" className="zb-button zb-button-primary mt-7">Log in to continue <Icon name="arrow" /></Link><p className="mt-5 text-sm text-slate-500">New to ZeroBus? <Link to="/register" className="font-semibold text-indigo-800 underline underline-offset-4">Create an account</Link></p></section>;

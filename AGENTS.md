@@ -35,7 +35,7 @@ firebase deploy --only hosting   # run from frontend/zerobus-web
 
 ## Frontend rules
 
-- All API access goes through `src/api.ts`; add types + methods there, not inline fetches. Auth state via `useAuth()`; guest pages use `SignInPrompt`.
+- All API access goes through `src/api.ts`; add types + methods there, not inline fetches. Auth state via `useAuth()`; guest pages use `SignInPrompt`. Chat localStorage is per-account (`zb-chat-<userId>`, owner-checked) and the route remounts per account — never share conversation state across logins; logout clears chat keys.
 - **Tests assert rendered strings** (`tests/ui.test.ts`): keep "Your next trip", "Illustrative conversation", `simulated`, `no real money`, `/chat` link. SSR hides nothing (opacity-only) but `useEffect` data never loads — don't test effect-fetched content.
 - Styling: `zb-*` classes in `index.css` (+ Tailwind utilities); icons only from `UI.tsx` set; scroll reveals via `useReveal` (IO-based, SSR-safe); **API URL is baked at build time** — set `$env:VITE_API_URL` *before* `npm run build` or the build silently targets `localhost:8000`.
 

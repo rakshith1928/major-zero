@@ -233,7 +233,21 @@ function FareCard({ comparison }: { comparison: FareComparison }) {
   );
 }
 
-const STORE_KEY = "zb-chat-session";
+const storeKey = (userId: number) => `zb-chat-${userId}`;
+
+const GREETING: ChatMessage = { role: "assistant", content: "Hi! Tell me your trip, e.g. 'AC sleeper from Bangalore to Chennai tomorrow'. Any arrival deadline I should watch for?" };
+
+function loadStored(userId: number) {
+  try {
+    const raw = localStorage.getItem(storeKey(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Never show another account's conversation, even if a key collides.
+    if (!parsed || parsed.ownerId !== userId) return null;
+    return parsed;
+  } catch { /* fresh session */ }
+  return null;
+}
 
 const EXAMPLE_PROMPTS = [
   "AC sleeper from Bangalore to Chennai tomorrow",
@@ -243,21 +257,14 @@ const EXAMPLE_PROMPTS = [
   "Undo my last change",
 ];
 
-function loadStored() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* fresh session */ }
-  return null;
-}
-
 export default function Chat() {
   const { user } = useAuth();
-  const [stored] = useState(loadStored);
-  const [sessionId] = useState(() => stored?.sessionId || `web-${Date.now()}`);
-  const [messages, setMessages] = useState<ChatMessage[]>(stored?.messages || [
-    { role: "assistant", content: "Hi! Tell me your trip, e.g. 'AC sleeper from Bangalore to Chennai tomorrow'. Any arrival deadline I should watch for?" },
-  ]);
+  // Remounted per account (route key), so the initializer below always runs
+  // for the signed-in user — one account can never see another's thread.
+  const [stored] = useState(() => (user ? loadStored(user.id) : null));
+  const [ownerId] = useState<number | null>(() => stored?.ownerId ?? user?.id ?? null);
+  const [sessionId] = useState(() => stored?.sessionId || `web-${user?.id ?? "guest"}-${Date.now()}`);
+  const [messages, setMessages] = useState<ChatMessage[]>(stored?.messages || [GREETING]);
   const [slots, setSlots] = useState<Record<string, string | number | null>>(stored?.slots || {});
   const [buses, setBuses] = useState<BusCard[]>(stored?.buses || []);
   const [fareComparison, setFareComparison] = useState<FareComparison | null>(null);
@@ -291,12 +298,15 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
   }, [messages, buses, warnings]);
 
-  // T03: pre-payment state survives a page reload.
+  // T03: pre-payment state survives a page reload — scoped per account so
+  // a second login never sees the first account's conversation.
+  // (Chat remounts per account via route key, so ownerId always matches.)
   useEffect(() => {
+    if (!user || ownerId !== user.id) return;
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ sessionId, messages, slots, buses, booking }));
+      localStorage.setItem(storeKey(user.id), JSON.stringify({ ownerId: user.id, sessionId, messages, slots, buses, booking }));
     } catch { /* storage full: chat still works */ }
-  }, [sessionId, messages, slots, buses, booking]);
+  }, [user, ownerId, sessionId, messages, slots, buses, booking]);
 
   if (!user) {
     return (
@@ -438,7 +448,6 @@ export default function Chat() {
     <div className="zb-chat">
       <PageHeader
         icon="chat"
-        art
         eyebrow="Plan your trip"
         title="Book by chatting"
         description="Tell me where you’re going. I’ll pull up buses, flag anything risky, and keep your details out of repetitive forms."

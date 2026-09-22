@@ -45,6 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     logout() {
       localStorage.removeItem("zb_token");
+      // Drop per-account chat sessions too (current and legacy keys) so the
+      // next login starts clean instead of reading another account's thread.
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith("zb-chat-") || k === "zb-chat-session")
+          .forEach((k) => localStorage.removeItem(k));
+      } catch { /* storage unavailable: nothing to clear */ }
       setUser(null);
     },
     setUser,
