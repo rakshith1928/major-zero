@@ -339,7 +339,7 @@ export default function Chat() {
         setCapture({ name: "", age: "", gender: "female", phone: "" });
       }
     } catch (err) {
-      setMessages((m) => [...m, { role: "assistant", content: `Something went wrong: ${(err as Error).message}` }]);
+      setMessages((m) => [...m, { role: "assistant", content: `Hmm, that didn't go through (${(err as Error).message}). Please try again.` }]);
     } finally {
       setBusy(false);
     }
@@ -360,7 +360,7 @@ export default function Chat() {
       setWarnings(created.warnings || []);
       setMessages((m) => [...m, { role: "assistant", content: `Selected ${bus.operator} at ${bus.departure}, Rs.${created.fare}. Booking ${created.booking_ref} is ready for payment.` }]);
     } catch (err) {
-      setMessages((m) => [...m, { role: "assistant", content: `Could not select: ${(err as Error).message}` }]);
+      setMessages((m) => [...m, { role: "assistant", content: `Couldn't start that booking (${(err as Error).message}). Want to try another bus?` }]);
     } finally {
       setBusy(false);
     }
@@ -372,7 +372,7 @@ export default function Chat() {
     const bookingRef = booking.booking_ref;
     const done = () => setPaying(false);
     const fail = (err: unknown) => {
-      setMessages((m) => [...m, { role: "assistant", content: `Payment failed: ${(err as Error).message}` }]);
+      setMessages((m) => [...m, { role: "assistant", content: `Payment didn't go through (${(err as Error).message}). No money moved — please try again.` }]);
       done();
     };
     api.createOrder(bookingRef).then((order) => {

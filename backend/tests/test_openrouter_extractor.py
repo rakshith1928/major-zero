@@ -44,3 +44,16 @@ def test_openrouter_default_timeout_is_chat_friendly():
     # seconds, then the stub answers.
     ex = extractor.OpenRouterSlotExtractor(api_key="test-key")
     assert ex.timeout <= 5
+
+
+def test_openrouter_ignores_non_scalar_slot_values():
+    # An object/array from the model must never land in slots (the UI would
+    # render it as [object Object]).
+    def fake_post(message, session_slots):
+        return {"origin": {"city": "Bangalore"}, "destination": "Chennai", "budget": [1000]}
+
+    ex = extractor.OpenRouterSlotExtractor(api_key="test-key", http_post=fake_post)
+    slots = ex.extract("anything at all", {})
+    assert "origin" not in slots
+    assert slots.get("destination") == "Chennai"
+    assert "budget" not in slots

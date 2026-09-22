@@ -1,5 +1,7 @@
 const BASE: string = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+import { ApiError, friendlyError } from "./errors";
+
 export function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("zb_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -28,12 +30,13 @@ async function request<T>(path: string, { method = "GET", body, auth = true }: R
     });
   } catch (err) {
     clearTimeout(timer);
-    throw new Error(err instanceof DOMException && err.name === "AbortError" ? "Request timed out — the server may be waking up. Please retry." : (err as Error).message);
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(0, err instanceof DOMException && err.name === "AbortError" ? "Request timed out — the server may be waking up. Please retry." : (err as Error).message);
   }
   clearTimeout(timer);
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`${res.status}: ${text.slice(0, 200)}`);
+    throw new ApiError(res.status, friendlyError(res.status, text));
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;

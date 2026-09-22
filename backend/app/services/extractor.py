@@ -194,6 +194,8 @@ class OpenRouterSlotExtractor:
                 value = data.get(key)
                 if value is None or value == "":
                     continue
+                if not isinstance(value, (str, int, float, bool)):
+                    continue  # objects/arrays would render as [object Object]
                 if key in ("origin", "destination") and isinstance(value, str):
                     merged[key] = _norm_place(value)
                 else:

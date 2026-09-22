@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, type MeResponse } from "./api";
+import { ApiError } from "./errors";
 
 interface AuthValue {
   user: MeResponse | null;
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // A dead backend (cold start, offline) must not nuke a good token:
     // only 401/403 means the token itself is bad.
     api.me().then(setUser).catch((err: unknown) => {
-      if (/^40[13]\b/.test((err as Error).message || "")) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         localStorage.removeItem("zb_token");
       }
     }).finally(() => setLoading(false));

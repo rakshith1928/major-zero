@@ -93,7 +93,7 @@ test('missing checkout constructor releases the Pay button', async () => {
   const h = paymentHarness({ window: {} });
   await settle(h);
   assert.equal(h.paying, false);
-  assert.match(h.messages.at(-1)!.content, /failed|unavailable/i);
+  assert.match(h.messages.at(-1)!.content, /didn't go through|failed|unavailable/i);
 });
 
 test('verification rejection is caught and shown in chat', async () => {
