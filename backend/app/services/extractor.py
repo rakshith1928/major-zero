@@ -170,6 +170,7 @@ class OpenRouterSlotExtractor:
     """
 
     _ALLOWED = ("origin", "destination", "travel_date", "bus_type", "budget", "deadline_time")
+    _REQUIRED = ("origin", "destination", "travel_date")
 
     def __init__(self, api_key: str = "", model: str = "openrouter/free", http_post=None, timeout: int = 4):
         self.api_key = api_key or ""
@@ -181,6 +182,8 @@ class OpenRouterSlotExtractor:
     def extract(self, message: str, session_slots: dict) -> dict:
         stub_slots = self._stub.extract(message, session_slots)
         if not self.api_key:
+            return stub_slots
+        if self._rules_resolved(stub_slots):
             return stub_slots
         try:
             if self.http_post is not None:
@@ -203,6 +206,14 @@ class OpenRouterSlotExtractor:
             return merged
         except Exception:
             return stub_slots
+
+    def _rules_resolved(self, stub_slots: dict) -> bool:
+        """True when a network round-trip can add nothing: the route and date
+        are known and who the ticket is for is settled. Follow-ups like
+        "for me" then answer instantly from rules alone."""
+        if any(not stub_slots.get(key) for key in self._REQUIRED):
+            return False
+        return stub_slots.get("passenger_ref") not in (None, "ambiguous")
 
     def _call_api(self, message: str, session_slots: dict) -> dict:
         import json as _json

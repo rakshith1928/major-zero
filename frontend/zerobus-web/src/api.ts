@@ -54,6 +54,7 @@ export interface ChatReply {
   assistant_text: string; messages: { role: string; content: string }[];
   fare_comparison?: FareComparison;
   negotiation?: { dropped: string[]; relaxed_slots: Record<string, string | number | null> };
+  served_routes?: string[];
 }
 export interface FareOption {
   date: string; min_fare: number | null; buses: number;

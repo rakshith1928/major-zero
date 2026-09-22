@@ -269,6 +269,7 @@ export default function Chat() {
   const [buses, setBuses] = useState<BusCard[]>(stored?.buses || []);
   const [fareComparison, setFareComparison] = useState<FareComparison | null>(null);
   const [negotiation, setNegotiation] = useState<{ dropped: string[] } | null>(null);
+  const [servedRoutes, setServedRoutes] = useState<string[] | null>(null);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const [booking, setBooking] = useState<BookingCreated | null>(stored?.booking || null);
   // Track-to-book handoff: a "Book" tap on /track prefills the composer
@@ -329,6 +330,7 @@ export default function Chat() {
       setBuses(reply.buses || []);
       setFareComparison(reply.fare_comparison || null);
       setNegotiation(reply.negotiation || null);
+      setServedRoutes(reply.served_routes || null);
       setMessages((m) => [...m, { role: "assistant", content: reply.assistant_text }]);
       if ((reply.slots || {}).passenger_ref === "other") {
         try {
@@ -476,6 +478,16 @@ export default function Chat() {
             {Object.entries(slots).filter(([, v]) => v).map(([k, v]) => (
               <span key={k} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{k}: {String(v)}</span>
             ))}
+          </div>
+        )}
+        {servedRoutes && servedRoutes.length > 0 && (
+          <div className="zb-prompts zb-enter" aria-label="Corridors we serve">
+            <p className="zb-prompts-label">Corridors we serve</p>
+            <div className="flex flex-wrap gap-2">
+              {servedRoutes.map((r) => (
+                <button key={r} onClick={() => send(r.split("↔").map((s) => s.trim()).join(" to "))} className="zb-prompt-chip">{r}</button>
+              ))}
+            </div>
           </div>
         )}
         {fareComparison && <FareCard comparison={fareComparison} />}

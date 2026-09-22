@@ -109,10 +109,24 @@ def routes(origin: str, destination: str, deadline: str | None = None, db: Sessi
     for row in ranked:
         del row["_sort_arrival"]
     if not ranked:
+        exists = (
+            db.query(Bus.id)
+            .filter(
+                func.lower(Bus.origin) == origin.lower(),
+                func.lower(Bus.destination) == destination.lower(),
+            )
+            .first()
+            is not None
+        )
+        reason = (
+            "No buses left on this corridor today."
+            if exists
+            else f"We don't run {origin}→{destination} yet — try a corridor from the map."
+        )
         return {
             "origin": origin, "destination": destination, "date": today.isoformat(),
             "simulated": True, "buses": [], "recommended_bus_id": None,
-            "reason": "No buses left on this corridor today.",
+            "reason": reason,
         }
     winner = ranked[0]
     winner_clears = deadline_time is None or winner["arrival"] <= deadline

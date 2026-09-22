@@ -49,6 +49,24 @@ def _is_undo_request(message: str) -> bool:
     return _UNDO_REQUEST.search(message or "") is not None
 
 
+def _route_exists(db: Session, origin: str, destination: str) -> bool:
+    return (
+        db.query(Bus.id)
+        .filter(
+            func.lower(Bus.origin) == origin.lower(),
+            func.lower(Bus.destination) == destination.lower(),
+        )
+        .first()
+        is not None
+    )
+
+
+def _served_routes(db: Session) -> list[str]:
+    pairs = db.query(Bus.origin, Bus.destination).distinct().all()
+    undirected = sorted({tuple(sorted(pair)) for pair in pairs})
+    return [f"{a} ↔ {b}" for a, b in undirected]
+
+
 def _frequent_route(db: Session, user_id: int) -> tuple[str, str] | None:
     """Most-booked (origin, destination) for the user, real bookings only."""
     row = (
@@ -297,6 +315,7 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
     buses: list = []
     assistant_text = ""
     negotiation = None
+    served_routes = None
     if slots.get("passenger_ref") == "ambiguous" and not missing and not restored:
         assistant_text = (
             "Just to confirm — is this ticket for you, or for someone else? "
@@ -357,6 +376,24 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
                         f"Found {len(buses)} bus(es). "
                         "Do you have an arrival deadline (exam, meeting) I should watch for?"
                     )
+            served_routes = None
+            if not buses and negotiation is None:
+                if not _route_exists(db, slots["origin"], slots["destination"]):
+                    # Unknown corridor: explain coverage instead of "Found 0".
+                    origin, destination = slots.pop("origin"), slots.pop("destination")
+                    served_routes = _served_routes(db)
+                    assistant_text = (
+                        f"No direct buses from {origin} to {destination} yet — "
+                        f"we currently run: {', '.join(served_routes)}. "
+                        "Which of these works for you?"
+                    )
+                    new_state = "NEEDS_INFO"
+                else:
+                    assistant_text = (
+                        "Nothing matches those filters — try dropping the budget "
+                        "or bus type, or pick another date."
+                    )
+                    new_state = "NEEDS_INFO"
     if restored:
         assistant_text = "Went back to your previous choice. " + assistant_text
         versions = prev_versions
@@ -376,6 +413,8 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
     }
     if negotiation is not None:
         response["negotiation"] = negotiation
+    if served_routes is not None:
+        response["served_routes"] = served_routes
     return response
 
 

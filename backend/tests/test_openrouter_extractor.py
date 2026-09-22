@@ -46,6 +46,37 @@ def test_openrouter_default_timeout_is_chat_friendly():
     assert ex.timeout <= 5
 
 
+def test_openrouter_skips_network_when_rules_resolved_everything():
+    # "for me" on complete slots: the stub has nothing left to learn, so no
+    # HTTP call may happen — this is what keeps follow-ups instant.
+    calls = []
+
+    def spy(message, session_slots):
+        calls.append(message)
+        return {}
+
+    ex = extractor.OpenRouterSlotExtractor(api_key="test-key", http_post=spy)
+    slots = ex.extract(
+        "for me",
+        {"origin": "Bangalore", "destination": "Chennai", "travel_date": "2026-09-20"},
+    )
+    assert calls == [], "LLM must not be called when rules resolved"
+    assert slots["origin"] == "Bangalore"
+
+
+def test_openrouter_still_called_when_slots_missing():
+    calls = []
+
+    def fake_post(message, session_slots):
+        calls.append(message)
+        return {"origin": "Bangalore"}
+
+    ex = extractor.OpenRouterSlotExtractor(api_key="test-key", http_post=fake_post)
+    slots = ex.extract("goa please", {})
+    assert calls, "LLM must fill gaps the rules cannot"
+    assert slots.get("origin") == "Bangalore"
+
+
 def test_openrouter_ignores_non_scalar_slot_values():
     # An object/array from the model must never land in slots (the UI would
     # render it as [object Object]).

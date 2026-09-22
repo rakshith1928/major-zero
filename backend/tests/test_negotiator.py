@@ -81,3 +81,28 @@ def test_chat_offers_negotiation_instead_of_empty_list(client, session):
     assert reply["negotiation"]["dropped"] == ["budget"]
     assert reply.get("buses"), "suggested buses keep the booking flow going"
     assert "700" in reply["assistant_text"] or "budget" in reply["assistant_text"].lower()
+
+
+def test_chat_unknown_route_names_served_corridors(client, session):
+    from app.seed.buses import seed_buses
+
+    seed_buses(session)
+    from tests.test_booking import _headers
+
+    headers = _headers(client)
+    reply = client.post(
+        "/api/booking/chat",
+        json={
+            "session_id": "unknown-route-1",
+            "message": "Chennai to Hyderabad tomorrow for me",
+        },
+        headers=headers,
+    ).json()
+    assert reply.get("buses") == []
+    assert reply["state"] == "NEEDS_INFO"
+    assert "No direct buses" in reply["assistant_text"]
+    assert "Bangalore" in reply["assistant_text"]
+    assert len(reply.get("served_routes", [])) == 5
+    # Route slots reset so the next message starts clean.
+    assert "origin" not in reply["slots"]
+    assert "destination" not in reply["slots"]
