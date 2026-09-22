@@ -46,7 +46,18 @@ def test_new_corridors_seeded_both_directions(session):
         ("Bangalore", "Vijayawada"), ("Vijayawada", "Bangalore"),
     ]:
         assert pair in pairs
-    assert len(session.query(Bus).all()) == 58
+
+
+def test_tourist_corridors_seeded_both_directions(session):
+    seed_buses(session)
+    pairs = {(b.origin, b.destination) for b in session.query(Bus).all()}
+    for pair in [
+        ("Bangalore", "Goa"), ("Goa", "Bangalore"),
+        ("Bangalore", "Tirupati"), ("Tirupati", "Bangalore"),
+        ("Bangalore", "Pondicherry"), ("Pondicherry", "Bangalore"),
+    ]:
+        assert pair in pairs
+    assert len(session.query(Bus).all()) == 82
 
 
 def test_new_corridor_midpoints_mapped():

@@ -13,7 +13,7 @@ from app.api.deps import get_current_user
 from app.config import settings
 from app.db import get_db
 from app.models import Booking, Bus, ChatMessage, PassengerProfile, User, WarningLog
-from app.services import fare_advice, negotiator, vault
+from app.services import fare_advice, negotiator, safety, vault
 from app.services.detectors import (
     boarding_deviation,
     date_time_errors,
@@ -287,6 +287,7 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
             )
             _log(db, user.id, req.session_id, "assistant", assistant_text, {"slots": slots})
             db.commit()
+            pick = safety.safest(buses, slots.get("deadline_time"), travel)
             return {
                 "state": "RESULTS",
                 "slots": slots,
@@ -294,6 +295,7 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
                 "assistant_text": assistant_text,
                 "messages": [{"role": "assistant", "content": assistant_text}],
                 "fare_comparison": comparison,
+                **({"safest_bus_id": pick["id"]} if pick is not None else {}),
             }
         assistant_text = fare_advice.template_summary(comparison)
         _save_versioned(
@@ -415,6 +417,16 @@ def chat(req: ChatRequest, user: User = Depends(get_current_user), db: Session =
         response["negotiation"] = negotiation
     if served_routes is not None:
         response["served_routes"] = served_routes
+    if buses and new_state == "RESULTS":
+        travel_for_safety = date.today()
+        try:
+            if slots.get("travel_date"):
+                travel_for_safety = date.fromisoformat(slots["travel_date"])
+        except ValueError:
+            pass
+        pick = safety.safest(buses, slots.get("deadline_time"), travel_for_safety)
+        if pick is not None:
+            response["safest_bus_id"] = pick["id"]
     return response
 
 

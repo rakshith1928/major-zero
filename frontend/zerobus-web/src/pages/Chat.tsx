@@ -71,13 +71,16 @@ function crowdBand(level: number | undefined | null): string {
 }
 interface CaptureForm { name: string; age: string; gender: string; phone: string; done?: boolean }
 
-function BusCardView({ bus, onSelect }: { bus: BusCard; onSelect: (bus: BusCard) => void }) {
+function BusCardView({ bus, safest, onSelect }: { bus: BusCard; safest: boolean; onSelect: (bus: BusCard) => void }) {
   return (
     <div className="zb-bus-card zb-enter">
       <div className="flex items-center justify-between gap-2">
         <span className="font-semibold text-slate-900">{bus.operator}</span>
-        <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
-          {bus.bus_type.replaceAll("_", " ")}
+        <span className="flex items-center gap-1.5">
+          {safest && <span className="zb-safe-pill">Safest pick</span>}
+          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
+            {bus.bus_type.replaceAll("_", " ")}
+          </span>
         </span>
       </div>
       <div className="zb-bus-times">
@@ -270,6 +273,7 @@ export default function Chat() {
   const [fareComparison, setFareComparison] = useState<FareComparison | null>(null);
   const [negotiation, setNegotiation] = useState<{ dropped: string[] } | null>(null);
   const [servedRoutes, setServedRoutes] = useState<string[] | null>(null);
+  const [safestBusId, setSafestBusId] = useState<number | null>(null);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const [booking, setBooking] = useState<BookingCreated | null>(stored?.booking || null);
   // Track-to-book handoff: a "Book" tap on /track prefills the composer
@@ -331,6 +335,7 @@ export default function Chat() {
       setFareComparison(reply.fare_comparison || null);
       setNegotiation(reply.negotiation || null);
       setServedRoutes(reply.served_routes || null);
+      setSafestBusId(reply.safest_bus_id ?? null);
       setMessages((m) => [...m, { role: "assistant", content: reply.assistant_text }]);
       if ((reply.slots || {}).passenger_ref === "other") {
         try {
@@ -499,7 +504,7 @@ export default function Chat() {
         {buses.length > 0 && (
           <div className="grid gap-3 md:grid-cols-2">
             {buses.map((b) => (
-              <BusCardView key={b.id} bus={b} onSelect={selectBus} />
+              <BusCardView key={b.id} bus={b} safest={safestBusId === b.id} onSelect={selectBus} />
             ))}
           </div>
         )}

@@ -21,6 +21,11 @@ STOPS = {
     "Salem": (11.6643, 78.1460),  # Bangalore–Coimbatore midpoint
     "Vijayawada": (16.5062, 80.6480),
     "Anantapur": (14.6819, 77.6006),  # Bangalore–Vijayawada midpoint
+    "Goa": (15.4909, 73.8278),
+    "Hubballi": (15.3647, 75.1240),  # Bangalore–Goa midpoint
+    "Tirupati": (13.6288, 79.4192),
+    "Chittoor": (13.2172, 79.1003),  # Bangalore–Tirupati midpoint
+    "Pondicherry": (11.9416, 79.8083),
 }
 
 _MIDPOINT = {
@@ -32,6 +37,12 @@ _MIDPOINT = {
     ("Coimbatore", "Bangalore"): "Salem",
     ("Bangalore", "Vijayawada"): "Anantapur",
     ("Vijayawada", "Bangalore"): "Anantapur",
+    ("Bangalore", "Goa"): "Hubballi",
+    ("Goa", "Bangalore"): "Hubballi",
+    ("Bangalore", "Tirupati"): "Chittoor",
+    ("Tirupati", "Bangalore"): "Chittoor",
+    ("Bangalore", "Pondicherry"): "Vellore",
+    ("Pondicherry", "Bangalore"): "Vellore",
 }
 
 # Trip Guardian demo: per-bus delay overrides (minutes) held in memory.

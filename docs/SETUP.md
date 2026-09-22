@@ -91,10 +91,10 @@ npm run build
 
 ## 5. Seed data
 
-`backend/app/seed/` ships the simulated bus inventory (58 buses across five
+`backend/app/seed/` ships the simulated bus inventory (82 buses across eight
 Bangalore-centred corridors: Chennai, Hyderabad, Mysuru, Coimbatore,
-Vijayawada) and booking history used by the prototype. The seed scripts are
-idempotent helpers, not production data.
+Vijayawada, Goa, Tirupati, Pondicherry) and booking history used by the
+prototype. The seed scripts are idempotent helpers, not production data.
 
 ## Ground rules baked into this project
 

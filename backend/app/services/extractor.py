@@ -38,6 +38,7 @@ _BUS_TYPES = {
 _PLACES = [
     "bangalore", "bengaluru", "blr", "chennai", "madras", "maa",
     "hyderabad", "hyd", "mysuru", "mysore", "coimbatore", "vijayawada",
+    "goa", "tirupati", "pondicherry", "pondy",
 ]
 
 _WEEKDAYS = {
@@ -56,6 +57,8 @@ def _norm_place(raw: str) -> str:
         return "Hyderabad"
     if raw in ("mysore",):
         return "Mysuru"
+    if raw in ("pondy",):
+        return "Pondicherry"
     return raw.title()
 
 

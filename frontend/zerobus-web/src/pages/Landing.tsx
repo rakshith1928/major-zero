@@ -21,6 +21,9 @@ const corridors: { from: string; to: string; note: string; operators: string[] }
   { from: "Bangalore", to: "Mysuru", note: "Frequent day buses, about 3.5 hrs on the road.", operators: ["SETC Express", "KPN Travels", "SRS Travels", "VRL Travels"] },
   { from: "Bangalore", to: "Coimbatore", note: "Day and overnight sleepers via Salem, about 7.5 hrs.", operators: ["SETC Express", "KPN Travels", "SRS Travels", "VRL Travels"] },
   { from: "Bangalore", to: "Vijayawada", note: "Overnight sleepers via Anantapur, about 12 hrs.", operators: ["SETC Express", "KPN Travels", "Orange Tours", "VRL Travels"] },
+  { from: "Bangalore", to: "Goa", note: "Overnight sleepers via Hubballi, about 12 hrs.", operators: ["SETC Express", "KPN Travels", "SRS Travels", "Orange Tours", "VRL Travels"] },
+  { from: "Bangalore", to: "Tirupati", note: "Frequent day buses via Chittoor, about 4 hrs.", operators: ["SETC Express", "KPN Travels", "SRS Travels", "Orange Tours"] },
+  { from: "Bangalore", to: "Pondicherry", note: "Day and overnight buses via Vellore, about 8 hrs.", operators: ["SETC Express", "KPN Travels", "SRS Travels", "VRL Travels"] },
 ];
 
 export default function Landing() {
@@ -35,8 +38,8 @@ export default function Landing() {
           <div className="mt-8 flex flex-wrap gap-3"><Link to="/chat" className="zb-button zb-button-amber">Start booking <Icon name="arrow" /></Link><Link to="/register" className="zb-button zb-button-hero">Create account</Link></div>
           <div className="zb-hero-note"><Icon name="shield" />Encrypted details <span aria-hidden="true">·</span> Thoughtful trip warnings</div>
           <dl className="zb-hero-stats">
-            <div><dt className="sr-only">Buses in the demo inventory</dt><dd><strong>58</strong><span>buses</span></dd></div>
-            <div><dt className="sr-only">Corridors served</dt><dd><strong>5</strong><span>corridors</span></dd></div>
+            <div><dt className="sr-only">Buses in the demo inventory</dt><dd><strong>82</strong><span>buses</span></dd></div>
+            <div><dt className="sr-only">Corridors served</dt><dd><strong>8</strong><span>corridors</span></dd></div>
             <div><dt className="sr-only">Mistake detectors watching each booking</dt><dd><strong>4</strong><span>mistake detectors</span></dd></div>
           </dl>
         </div>

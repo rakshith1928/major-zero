@@ -258,6 +258,8 @@
   /* Landing tagline strip: bus beside the words, never center stage. */
   .zb-tagline { @apply mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-2xl border border-slate-200 bg-white px-6 py-5; }
   .zb-tagline p { @apply text-lg font-semibold tracking-tight text-indigo-950; }
+  /* Safest-pick pill. */
+  .zb-safe-pill { @apply rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800; }
 @media (max-width: 767px) {
   .zb-nav-inner { flex-wrap: wrap; gap: 0; padding-top: 12px; }
   .zb-brand { font-size: 22px; }

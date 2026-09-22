@@ -28,6 +28,11 @@ const STOPS: Record<string, [number, number]> = {
   Coimbatore: [11.0168, 76.9558],
   Anantapur: [14.6819, 77.6006],
   Vijayawada: [16.5062, 80.648],
+  Goa: [15.4909, 73.8278],
+  Hubballi: [15.3647, 75.124],
+  Tirupati: [13.6288, 79.4192],
+  Chittoor: [13.2172, 79.1003],
+  Pondicherry: [11.9416, 79.8083],
 };
 const CORRIDORS: string[][] = [
   ["Bangalore", "Vellore", "Chennai"],
@@ -35,8 +40,11 @@ const CORRIDORS: string[][] = [
   ["Bangalore", "Mysuru"],
   ["Bangalore", "Salem", "Coimbatore"],
   ["Bangalore", "Anantapur", "Vijayawada"],
+  ["Bangalore", "Hubballi", "Goa"],
+  ["Bangalore", "Chittoor", "Tirupati"],
+  ["Bangalore", "Vellore", "Pondicherry"],
 ];
-const CITIES = ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada"];
+const CITIES = ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada", "Goa", "Tirupati", "Pondicherry"];
 
 export default function Track() {
   const nav = useNavigate();
@@ -91,7 +99,7 @@ export default function Track() {
 
   return (
     <div className="zb-page">
-      <PageHeader icon="pin" eyebrow="Follow your journey" title="Live bus map" badge="SIMULATION" art description="Positions are simulated along route corridors for the prototype. Real GPS integration is future work." />
+      <PageHeader icon="pin" eyebrow="Follow your journey" title="Live bus map" badge="SIMULATION" description="Positions are simulated along route corridors for the prototype. Real GPS integration is future work." />
       <div className="zb-panel mt-6">
         <h2 className="font-semibold text-slate-900">Find my best bus</h2>
         <p className="mt-1 text-sm text-slate-600">Today's remaining buses on one corridor, ranked by earliest arrival — against your deadline if you set one.</p>
@@ -172,7 +180,7 @@ export default function Track() {
         </label>
         <label className="min-w-0 w-full text-sm font-medium text-slate-700 sm:w-auto sm:flex-1">Boarding point
           <select className="zb-control mt-2 block min-w-0 w-full" value={stop} onChange={(e) => setStop(e.target.value)}>
-            {(corridorStops.length ? corridorStops : ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada", "Vellore", "Kurnool", "Salem", "Anantapur"]).map((s) => <option key={s}>{s}</option>)}
+            {(corridorStops.length ? corridorStops : ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada", "Goa", "Tirupati", "Pondicherry", "Vellore", "Kurnool", "Salem", "Anantapur", "Hubballi", "Chittoor"]).map((s) => <option key={s}>{s}</option>)}
           </select>
         </label>
         <button

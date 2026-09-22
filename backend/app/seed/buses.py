@@ -22,6 +22,12 @@ ROUTES = [
     ("Coimbatore", "Bangalore"),
     ("Bangalore", "Vijayawada"),
     ("Vijayawada", "Bangalore"),
+    ("Bangalore", "Goa"),
+    ("Goa", "Bangalore"),
+    ("Bangalore", "Tirupati"),
+    ("Tirupati", "Bangalore"),
+    ("Bangalore", "Pondicherry"),
+    ("Pondicherry", "Bangalore"),
 ]
 
 PRIMARY_ROUTE = ("Bangalore", "Chennai")
@@ -104,6 +110,42 @@ _TIMETABLES = {
         ("SRS Travels", "AC_SEMI_SLEEPER", "11:00", 725, 1040, 40),
         ("Orange Tours", "AC_SLEEPER", "17:30", 715, 1290, 36),
         ("KPN Travels", "AC_SLEEPER", "21:00", 730, 1390, 36),
+    ],
+    ("Bangalore", "Goa"): [
+        ("VRL Travels", "AC_SLEEPER", "18:00", 710, 1350, 36),
+        ("SRS Travels", "AC_SLEEPER", "19:30", 720, 1300, 36),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "20:30", 730, 1050, 40),
+        ("KPN Travels", "AC_SLEEPER", "22:00", 715, 1400, 36),
+    ],
+    ("Goa", "Bangalore"): [
+        ("VRL Travels", "AC_SLEEPER", "17:30", 720, 1350, 36),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "19:00", 730, 1040, 40),
+        ("SRS Travels", "AC_SLEEPER", "20:00", 715, 1290, 36),
+        ("SETC Express", "NON_AC_SEATER", "21:30", 740, 1000, 50),
+    ],
+    ("Bangalore", "Tirupati"): [
+        ("SETC Express", "NON_AC_SEATER", "06:00", 240, 600, 50),
+        ("KPN Travels", "AC_SEMI_SLEEPER", "08:30", 235, 720, 40),
+        ("SRS Travels", "AC_SEMI_SLEEPER", "13:00", 240, 700, 44),
+        ("Orange Tours", "NON_AC_SEATER", "16:30", 245, 640, 52),
+    ],
+    ("Tirupati", "Bangalore"): [
+        ("SETC Express", "NON_AC_SEATER", "05:30", 245, 600, 50),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "09:00", 240, 710, 40),
+        ("KPN Travels", "AC_SEMI_SLEEPER", "14:30", 235, 730, 44),
+        ("SRS Travels", "NON_AC_SEATER", "18:00", 240, 650, 52),
+    ],
+    ("Bangalore", "Pondicherry"): [
+        ("SETC Express", "NON_AC_SEATER", "07:30", 470, 750, 50),
+        ("KPN Travels", "AC_SEMI_SLEEPER", "10:00", 460, 950, 40),
+        ("SRS Travels", "AC_SLEEPER", "15:30", 455, 1100, 36),
+        ("VRL Travels", "AC_SLEEPER", "22:00", 470, 1080, 36),
+    ],
+    ("Pondicherry", "Bangalore"): [
+        ("SETC Express", "NON_AC_SEATER", "06:00", 470, 760, 50),
+        ("Orange Tours", "AC_SEMI_SLEEPER", "09:30", 465, 940, 40),
+        ("KPN Travels", "AC_SLEEPER", "14:00", 460, 1090, 36),
+        ("VRL Travels", "AC_SLEEPER", "21:30", 475, 1070, 36),
     ],
 }
 
