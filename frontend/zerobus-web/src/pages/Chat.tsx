@@ -264,7 +264,18 @@ export default function Chat() {
   const [negotiation, setNegotiation] = useState<{ dropped: string[] } | null>(null);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const [booking, setBooking] = useState<BookingCreated | null>(stored?.booking || null);
-  const [input, setInput] = useState("");
+  // Track-to-book handoff: a "Book" tap on /track prefills the composer
+  // once (never auto-sends); the traveller reviews before sending.
+  const [input, setInput] = useState(() => {
+    try {
+      const raw = localStorage.getItem("zb-track-pick");
+      if (!raw) return "";
+      localStorage.removeItem("zb-track-pick");
+      const pick = JSON.parse(raw) as { origin?: string; destination?: string };
+      if (pick?.origin && pick?.destination) return `${pick.origin} to ${pick.destination}`;
+    } catch { /* malformed pick or SSR: chat still works */ }
+    return "";
+  });
   const [busy, setBusy] = useState(false);
   const [paying, setPaying] = useState(false);
   const [demoPay, setDemoPay] = useState<DemoOrder | null>(null);

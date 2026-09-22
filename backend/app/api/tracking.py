@@ -30,7 +30,15 @@ def eta(bus_id: int, travel_date: str, stop: str, db: Session = Depends(get_db))
 
     travel = date_cls.fromisoformat(travel_date)
     bus = db.get(Bus, bus_id)
-    return service.eta_to_stop(bus, travel, stop)
+    if bus is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "bus not found")
+    try:
+        return service.eta_to_stop(bus, travel, stop)
+    except service.UnknownStop as exc:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            {"message": f"{stop} is not on this bus's corridor", "stops": exc.stops},
+        )
 
 
 @router.get("/routes")

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -12,7 +13,8 @@ import shadow from "leaflet/dist/images/marker-shadow.png";
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({ iconRetinaUrl: marker2x, iconUrl: marker, shadowUrl: shadow });
 
-interface BusPosition { bus_id: number; lat: number; lon: number; progress: number; status: string; remaining_minutes: number }
+interface BusPosition { bus_id: number; lat: number; lon: number; progress: number; status: string; remaining_minutes: number; corridor: string[] }
+interface EtaResult { eta_minutes: number; status: string; detail: string }
 
 // Approximate corridor coordinates (same source as the backend sim).
 const STOPS: Record<string, [number, number]> = {
@@ -37,15 +39,42 @@ const CORRIDORS: string[][] = [
 const CITIES = ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada"];
 
 export default function Track() {
+  const nav = useNavigate();
+  const trackerRef = useRef<HTMLDivElement>(null);
   const [buses, setBuses] = useState<BusPosition[]>([]);
   const [busId, setBusId] = useState<string>("");
   const [stop, setStop] = useState("Bangalore");
-  const [eta, setEta] = useState<{ eta_minutes: number; status: string } | null>(null);
+  const [eta, setEta] = useState<EtaResult | null>(null);
   const [adviceFrom, setAdviceFrom] = useState("Bangalore");
   const [adviceTo, setAdviceTo] = useState("Chennai");
   const [adviceDeadline, setAdviceDeadline] = useState("");
   const [advice, setAdvice] = useState<RouteAdvice | null>(null);
   const [adviceBusy, setAdviceBusy] = useState(false);
+
+  const selectedBus = buses.find((b) => String(b.bus_id) === busId);
+  const corridorStops = selectedBus?.corridor?.length ? selectedBus.corridor : [];
+
+  async function checkEta(id: string, stopName: string) {
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      setEta(await api.eta(Number(id), today, stopName));
+    } catch { /* offline: keep last */ }
+  }
+
+  function trackBus(id: string, destination: string) {
+    setBusId(id);
+    setStop(destination);
+    void checkEta(id, destination);
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    trackerRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  }
+
+  function bookBus(origin: string, destination: string) {
+    try {
+      localStorage.setItem("zb-track-pick", JSON.stringify({ origin, destination }));
+    } catch { /* storage full: chat still works */ }
+    nav("/chat");
+  }
 
   useEffect(() => {
     let alive = true;
@@ -101,15 +130,22 @@ export default function Track() {
             {advice.buses.length > 0 ? (
               <ul className="mt-2 space-y-2">
                 {advice.buses.slice(0, 5).map((b) => (
-                  <li key={b.bus_id}>
+                  <li key={b.bus_id} className={`zb-advice-row zb-enter${b.bus_id === advice.recommended_bus_id ? " zb-advice-best" : ""}`}>
                     <button
-                      onClick={() => setBusId(String(b.bus_id))}
-                      className={`zb-advice-row zb-enter${b.bus_id === advice.recommended_bus_id ? " zb-advice-best" : ""}`}
+                      onClick={() => trackBus(String(b.bus_id), advice.destination)}
+                      className="zb-advice-track"
                       aria-label={`Track bus ${b.bus_id}, ${b.operator}`}
                     >
                       <span className="text-sm font-semibold text-slate-900">{b.departure} → {b.arrival}{b.arrival_day_offset > 0 && " +1"}</span>
                       <span className="text-sm text-slate-600">{b.operator} · ₹{b.fare} · {b.seats_left} seats left · {b.status}</span>
                       {b.bus_id === advice.recommended_bus_id && <span className="zb-best-pill">Best</span>}
+                    </button>
+                    <button
+                      onClick={() => bookBus(advice.origin, advice.destination)}
+                      className="zb-advice-book"
+                      aria-label={`Book ${advice.origin} to ${advice.destination} in chat`}
+                    >
+                      Book
                     </button>
                   </li>
                 ))}
@@ -120,32 +156,40 @@ export default function Track() {
           </div>
         )}
       </div>
-      <div className="zb-panel mt-6">
+      <div className="zb-panel mt-6" ref={trackerRef}>
         <h2 className="font-semibold text-slate-900">Find your bus</h2>
         <div className="mt-3 flex flex-wrap items-end gap-4">
         <label className="min-w-0 w-full text-sm font-medium text-slate-700 sm:w-auto sm:flex-1">Bus{buses.length > 0 && <span className="font-normal text-slate-500"> ({buses.length} reporting)</span>}
-          <select className="zb-control mt-2 block min-w-0 w-full" value={busId} onChange={(e) => setBusId(e.target.value)}>
+          <select className="zb-control mt-2 block min-w-0 w-full" value={busId} onChange={(e) => {
+            const id = e.target.value;
+            setBusId(id);
+            const picked = buses.find((b) => String(b.bus_id) === id);
+            if (picked?.corridor?.length) setStop(picked.corridor[picked.corridor.length - 1]);
+          }}>
             <option value="">Pick a bus</option>
             {buses.map((b) => <option key={b.bus_id} value={b.bus_id}>Bus #{b.bus_id} ({b.status})</option>)}
           </select>
         </label>
         <label className="min-w-0 w-full text-sm font-medium text-slate-700 sm:w-auto sm:flex-1">Boarding point
           <select className="zb-control mt-2 block min-w-0 w-full" value={stop} onChange={(e) => setStop(e.target.value)}>
-            {["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada", "Vellore", "Kurnool", "Salem", "Anantapur"].map((s) => <option key={s}>{s}</option>)}
+            {(corridorStops.length ? corridorStops : ["Bangalore", "Chennai", "Hyderabad", "Mysuru", "Coimbatore", "Vijayawada", "Vellore", "Kurnool", "Salem", "Anantapur"]).map((s) => <option key={s}>{s}</option>)}
           </select>
         </label>
         <button
           disabled={!busId}
-          onClick={async () => {
-            const today = new Date().toISOString().slice(0, 10);
-            setEta(await api.eta(Number(busId), today, stop));
-          }}
+          onClick={() => checkEta(busId, stop)}
           className="zb-action w-full rounded-lg bg-amber-400 px-4 py-2.5 sm:w-auto text-sm font-semibold text-indigo-950 hover:bg-amber-300 disabled:opacity-50"
         >
           Check ETA
         </button>
         </div>
-        {eta && <p className="zb-eta zb-enter" aria-live="polite">ETA to {stop}: <strong className="tabular-nums">{eta.eta_minutes} min</strong> ({eta.status})</p>}
+        {eta && (
+          <p className="zb-eta zb-enter" aria-live="polite">
+            {eta.detail === "completed" && <>Bus #{busId} has <strong>completed</strong> this run.</>}
+            {eta.detail === "departs_in" && <>Bus #{busId} departs {stop} in <strong className="tabular-nums">{eta.eta_minutes} min</strong>.</>}
+            {eta.detail !== "completed" && eta.detail !== "departs_in" && <>ETA to {stop}: <strong className="tabular-nums">{eta.eta_minutes} min</strong> ({eta.status})</>}
+          </p>
+        )}
       </div>
       <div className="zb-map-wrap mt-5">
         <span className="zb-map-chip">SIMULATION</span>

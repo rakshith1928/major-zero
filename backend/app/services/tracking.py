@@ -64,6 +64,15 @@ def corridor(origin: str, destination: str) -> list[tuple[str, tuple[float, floa
     return points
 
 
+class UnknownStop(ValueError):
+    """Raised when a stop is not on the bus's corridor; carries valid stops."""
+
+    def __init__(self, stop: str, stops: list[str]):
+        super().__init__(f"unknown stop: {stop}")
+        self.stop = stop
+        self.stops = stops
+
+
 def _lerp(a: tuple[float, float], b: tuple[float, float], t: float):
     return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
 
@@ -94,18 +103,30 @@ def position_for(bus, travel: date, now: datetime | None = None) -> dict:
 
 
 def eta_to_stop(bus, travel: date, stop: str, now: datetime | None = None) -> dict:
+    now = now or datetime.now()
     pos = position_for(bus, travel, now)
     points = corridor(bus.origin, bus.destination)
     names = [name for name, _ in points]
     if stop not in names:
-        stop = bus.origin
+        raise UnknownStop(stop, names)
+    base = {
+        "bus_id": bus.id,
+        "stop": stop,
+        "status": pos["status"],
+        "simulated": True,
+    }
+    if pos["status"] == "COMPLETED":
+        return {**base, "eta_minutes": 0, "detail": "completed"}
+    if stop == bus.origin:
+        # ETA to where the bus starts is meaningless; report departure instead.
+        dep = datetime.combine(travel, bus.departure_time)
+        wait = max(0, int((dep - now).total_seconds() // 60))
+        return {**base, "eta_minutes": wait, "detail": "departs_in"}
     stop_fraction = names.index(stop) / max(1, len(names) - 1)
     remaining_fraction = max(0.0, stop_fraction - pos["progress"])
     eta_minutes = int(remaining_fraction * bus.duration_minutes) + delay_for(bus.id)
     return {
-        "bus_id": bus.id,
-        "stop": stop,
+        **base,
         "eta_minutes": eta_minutes,
-        "status": pos["status"],
-        "simulated": True,
+        "detail": "en_route" if pos["progress"] > 0 else "scheduled",
     }

@@ -122,9 +122,9 @@ export const api = {
     request<{ route: string[]; date: string; curve: { bus_id: number; departure: string; predicted_occupancy: number; is_peak: boolean }[] }>(
       `/api/analytics/demand?origin=${origin}&destination=${destination}&date=${date}`, { auth: false }),
   positions: () =>
-    request<{ simulated: boolean; as_of: string; buses: { bus_id: number; lat: number; lon: number; progress: number; status: string; remaining_minutes: number }[] }>("/api/tracking/positions", { auth: false }),
+    request<{ simulated: boolean; as_of: string; buses: { bus_id: number; lat: number; lon: number; progress: number; status: string; remaining_minutes: number; corridor: string[] }[] }>("/api/tracking/positions", { auth: false }),
   eta: (bus_id: number, travel_date: string, stop: string) =>
-    request<{ bus_id: number; stop: string; eta_minutes: number; status: string; simulated: boolean }>(
+    request<{ bus_id: number; stop: string; eta_minutes: number; status: string; simulated: boolean; detail: string }>(
       `/api/tracking/eta?bus_id=${bus_id}&travel_date=${travel_date}&stop=${stop}`, { auth: false }),
   routes: (origin: string, destination: string, deadline?: string) =>
     request<RouteAdvice>(

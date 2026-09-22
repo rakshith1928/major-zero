@@ -213,11 +213,14 @@
   /* Requirement Negotiator note. */
   .zb-negotiation { @apply rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-slate-800; }
   /* Route advisor. */
-  .zb-advice-row { @apply flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left; transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+  .zb-advice-row { @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3; transition: border-color 180ms, box-shadow 180ms, transform 180ms; }
+  .zb-advice-track { @apply flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-left; }
+  .zb-advice-book { @apply shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-semibold text-indigo-950; transition: background-color 160ms, transform 160ms; }
   .zb-advice-best { @apply border-amber-300 bg-amber-50/70; }
   .zb-best-pill { @apply ml-auto rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-indigo-950; }
   @media (hover: hover) {
     .zb-advice-row:hover { transform: translateY(-1px); border-color: #a5b4fc; box-shadow: 0 6px 18px #1e1b4b12; }
+    .zb-advice-book:hover { background: #fcd34d; transform: translateY(-1px); }
   }
   /* Shared bus motif (BusArt): night bus, brand indigo/amber. */
   .zb-busart { display: block; overflow: visible; }
