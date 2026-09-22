@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PageHeader, SignInPrompt } from "../components/UI";
+import { BusArt } from "../components/BusArt";
 import { api, type BusCard, type BookingCreated, type FareComparison, type SavedPassenger, type Warning } from "../api";
 import { useAuth } from "../auth";
 
@@ -426,6 +427,7 @@ export default function Chat() {
     <div className="zb-chat">
       <PageHeader
         icon="chat"
+        art
         eyebrow="Plan your trip"
         title="Book by chatting"
         description="Tell me where you’re going. I’ll pull up buses, flag anything risky, and keep your details out of repetitive forms."
@@ -533,7 +535,8 @@ export default function Chat() {
           </div>
         )}
         {busy && (
-          <div className="flex justify-start" aria-live="polite">
+          <div className="flex items-center gap-3" aria-live="polite">
+            <BusArt width={72} />
             <div className="flex gap-1 rounded-2xl border border-slate-200 bg-white px-4 py-3">
               <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:0ms]" />
               <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />

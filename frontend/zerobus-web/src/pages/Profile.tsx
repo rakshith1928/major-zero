@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type SavedPassenger } from "../api";
+import { BusArt } from "../components/BusArt";
 import { useAuth } from "../auth";
 import { Icon, PageHeader, SignInPrompt } from "../components/UI";
 
@@ -19,7 +20,7 @@ export default function Profile() {
 
   return (
     <div className="zb-page">
-      <PageHeader icon="user" eyebrow="Your account" title="Profile" description="Your passenger details and notifications, in one place." />
+      <PageHeader icon="user" eyebrow="Your account" title="Profile" art description="Your passenger details and notifications, in one place." />
       <div className="zb-panel mt-6 flex items-start gap-3">
         <span className="zb-icon-tile shrink-0"><Icon name="lock" /></span>
         <div className="min-w-0">
@@ -32,7 +33,7 @@ export default function Profile() {
       <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="user" />Saved passengers</h2>
       <p className="mt-2 text-sm text-slate-500">Book for someone and choose "remember" to save their details here.</p>
       {passengers.length === 0 && (
-        <p className="zb-empty">No saved passengers yet — they’ll appear here after you book for someone.</p>
+        <div className="zb-empty"><BusArt width={96} parked className="mx-auto mb-2" />No saved passengers yet — they’ll appear here after you book for someone.</div>
       )}
       <ul className="mt-2 space-y-2">
         {passengers.map((p) => (
@@ -54,7 +55,7 @@ export default function Profile() {
       <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Icon name="chat" />Notifications</h2>
       <p className="mt-2 text-sm text-slate-500">Updates connected to your account and journeys.</p>
       {notifications.length === 0 && (
-        <p className="zb-empty">No notifications right now — booking updates will show up here.</p>
+        <div className="zb-empty"><BusArt width={96} parked className="mx-auto mb-2" />No notifications right now — booking updates will show up here.</div>
       )}
       <ul className="mt-2 space-y-2">
         {notifications.map((n) => (

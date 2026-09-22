@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Icon, type IconName } from "../components/UI";
+import { BusArt } from "../components/BusArt";
 import { useReveal } from "../hooks/useReveal";
 
 const features: { icon: IconName; number: string; title: string; body: string }[] = [
@@ -45,9 +46,12 @@ export default function Landing() {
           <div className="zb-route-strip"><span><span className="block text-[10px] uppercase tracking-widest text-slate-500">From</span>Bangalore</span><span className="zb-route-line"><Icon name="arrow" /></span><span><span className="block text-[10px] uppercase tracking-widest text-slate-500">To</span>Chennai</span></div>
         </div>
       </header>
+      <div className="zb-roadband" aria-hidden="true"><BusArt width={148} /><span className="zb-roadline" /></div>
       <section className="zb-features zb-reveal" aria-labelledby="features-title"><div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="zb-eyebrow">Built around your journey</p><h2 id="features-title" className="mt-2 text-2xl font-bold tracking-tight text-indigo-950">Less friction, from start to stop.</h2></div><p className="text-sm text-slate-500">Simple by design. Helpful by nature.</p></div><div className="grid gap-4 md:grid-cols-3">{features.map(({ icon, number, title, body }) => <article key={number} className="zb-feature-card"><div className="flex items-center justify-between"><span className="zb-icon-tile"><Icon name={icon} /></span><span className="text-xs font-medium tabular-nums text-slate-400">/{number}</span></div><h3 className="mt-5 font-semibold text-indigo-950">{title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p></article>)}</div></section>
+      <hr className="zb-road zb-reveal" aria-hidden="true" />
       <section className="zb-steps zb-reveal" aria-labelledby="how-title"><div><h2 id="how-title">How it works.</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">Three moves from an idea to a seat — the chat does the form-filling for you.</p></div><div className="zb-step-grid">{steps.map(({ icon, title, body }, i) => <article key={title} className="zb-step-card"><div className="flex items-center justify-between"><span className="zb-icon-tile"><Icon name={icon} /></span><span className="zb-step-num">0{i + 1}</span></div><h3>{title}</h3><p>{body}</p></article>)}</div></section>
       <section className="zb-corridors zb-reveal" aria-labelledby="corridors-title"><div><h2 id="corridors-title">Five corridors, covered daily.</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">Simulated timetables from operators you'll recognise. Pick a corridor to start chatting.</p></div><div className="zb-corridor-grid">{corridors.map(({ from, to, note, operators }) => <Link key={`${from}-${to}`} to="/chat" className="zb-corridor-card" aria-label={`${from} to ${to} — start booking`}><p className="zb-corridor-route"><Icon name="pin" />{from} <Icon name="arrow" aria-hidden="true" /> {to}</p><p className="zb-corridor-meta">{note}</p><div className="zb-corridor-ops">{operators.map((op) => <span key={op}>{op}</span>)}</div></Link>)}</div></section>
+      <hr className="zb-road zb-reveal" aria-hidden="true" />
       <section className="zb-cta zb-reveal" aria-labelledby="cta-title"><h2 id="cta-title">Ready when <span>you are.</span></h2><p>Create an account once, then book every future trip in a single conversation.</p><Link to="/chat" className="zb-button zb-button-amber">Start booking <Icon name="arrow" /></Link></section>
       <aside className="zb-disclosure"><span className="zb-badge shrink-0">Research prototype</span><p>Bus inventory and tracking are simulated. Payments use Razorpay test mode — no real money. This is a student research project, not a live transport service.</p></aside>
     </div>

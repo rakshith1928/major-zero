@@ -62,7 +62,7 @@ export default function Track() {
 
   return (
     <div className="zb-page">
-      <PageHeader icon="pin" eyebrow="Follow your journey" title="Live bus map" badge="SIMULATION" description="Positions are simulated along route corridors for the prototype. Real GPS integration is future work." />
+      <PageHeader icon="pin" eyebrow="Follow your journey" title="Live bus map" badge="SIMULATION" art description="Positions are simulated along route corridors for the prototype. Real GPS integration is future work." />
       <div className="zb-panel mt-6">
         <h2 className="font-semibold text-slate-900">Find my best bus</h2>
         <p className="mt-1 text-sm text-slate-600">Today's remaining buses on one corridor, ranked by earliest arrival — against your deadline if you set one.</p>
