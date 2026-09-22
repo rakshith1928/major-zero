@@ -7,7 +7,9 @@ logistic-head model registers itself via `set_classifier()` when available
 keyword rules route the chat flow.
 """
 
+import os
 import re
+from pathlib import Path
 from typing import Callable
 
 Classifier = Callable[[str], str]
@@ -64,7 +66,11 @@ class TrainedPassengerRef:
         if self.kind == "minilm":
             from sentence_transformers import SentenceTransformer
 
-            self._embedder = SentenceTransformer(bundle["model_name"])
+            model_name = bundle["model_name"]
+            local_snapshot = _resolve_local_snapshot(
+                os.environ.get("HF_HOME", ""), model_name
+            )
+            self._embedder = SentenceTransformer(local_snapshot or model_name)
 
     def __call__(self, text: str) -> str:
         try:
@@ -77,6 +83,30 @@ class TrainedPassengerRef:
             return str(self.clf.predict(vec)[0])
         except Exception:
             return KeywordPassengerRef()(text)
+
+
+def _resolve_local_snapshot(hf_home: str, model_name: str) -> str | None:
+    """Find a usable model snapshot under a local HF cache dir.
+
+    Hub-name lookups need the strict cache layout (blobs + refs); a plain
+    snapshot directory copied from another machine is invisible to them.
+    This scans `<hf_home>/models--<org>--<name>/snapshots/*/` for a directory
+    holding a config, and returns it for direct loading. None when absent.
+    """
+    if not hf_home or "/" not in model_name:
+        return None
+    cache_dir = (
+        Path(hf_home) / f"models--{model_name.replace('/', '--')}" / "snapshots"
+    )
+    if not cache_dir.is_dir():
+        return None
+    candidates = sorted(
+        p for p in cache_dir.iterdir()
+        if p.is_dir() and (p / "config.json").is_file()
+    )
+    if not candidates:
+        return None
+    return str(candidates[0])
 
 
 def load_trained_classifier(model_path: str) -> bool:

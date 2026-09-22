@@ -102,7 +102,7 @@ def test_chat_unknown_route_names_served_corridors(client, session):
     assert reply["state"] == "NEEDS_INFO"
     assert "No direct buses" in reply["assistant_text"]
     assert "Bangalore" in reply["assistant_text"]
-    assert len(reply.get("served_routes", [])) == 5
+    assert len(reply.get("served_routes", [])) == 8
     # Route slots reset so the next message starts clean.
     assert "origin" not in reply["slots"]
     assert "destination" not in reply["slots"]

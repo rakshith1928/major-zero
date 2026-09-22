@@ -100,5 +100,6 @@ prototype. The seed scripts are idempotent helpers, not production data.
 
 - Secrets live only in `backend/.env`; nothing is published or pushed anywhere.
 - Razorpay stays in **test mode** — no real money moves, demos stop at the payment screen.
+- The passenger-intent MiniLM model is local-only (`docs/LOCAL_ML.md`); production uses keyword rules.
 - Bus inventory, GPS positions, and crowd levels are **simulated** and labelled as such in the UI.
 - Hugging Face models load from the local cache only (offline mode).

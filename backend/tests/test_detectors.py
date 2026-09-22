@@ -1,6 +1,6 @@
 """T06 — the four Mistake Predictor detectors as pure functions."""
 
-from datetime import date, time
+from datetime import date, time, timedelta
 from types import SimpleNamespace
 
 from app.services.detectors import (
@@ -106,9 +106,11 @@ def test_date_time_errors_flags_overnight_arrival_date():
 
 
 def test_date_time_errors_quiet_on_clean_future_trip():
+    # Relative date: a hardcoded "future" date rots into the past.
+    future = date.today() + timedelta(days=30)
     assert (
         date_time_errors(
-            travel_date=date(2026, 9, 20),
+            travel_date=future,
             raw_text="travelling next week",
             bus=_bus(arr="18:00", offset=0),
         )
