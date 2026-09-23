@@ -1,7 +1,8 @@
 # ZeroBus Setup Guide
 
 Local development setup for the ZeroBus prototype (FastAPI backend + React/Vite frontend).
-Everything runs on your machine; the database is your Supabase project over its session pooler.
+Everything runs on your machine; the database is your Supabase project over its
+session pooler, or a local SQLite file if `DATABASE_URL` is unset.
 
 ## Prerequisites
 
